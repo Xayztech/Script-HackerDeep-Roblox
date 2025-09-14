@@ -1,0 +1,107 @@
+--[[
+    WARNING: Heads up! This script has not been verified by ScriptBlox. Use at your own risk!
+]]
+-- LocalScript (StarterPlayerScripts or run via Delta)
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+-- === GUI Setup ===
+local gui = Instance.new("ScreenGui")
+gui.Name = "EgorToggle"
+gui.ResetOnSpawn = false
+gui.Parent = playerGui
+
+local button = Instance.new("TextButton")
+button.Size = UDim2.new(0, 130, 0, 40)
+button.Position = UDim2.new(0, 10, 1, -60)
+button.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+button.TextColor3 = Color3.new(1, 1, 1)
+button.TextSize = 20
+button.Font = Enum.Font.SourceSansBold
+button.Text = "Egor: OFF"
+button.Parent = gui
+
+-- === State Variables ===
+local egorEnabled = false
+local runAnimId = "rbxassetid://913376220" -- Roblox default run
+local runTrack = nil
+local runConnection = nil
+
+-- === Setup Run Animation ===
+local function playRunAnimation(humanoid)
+	local animator = humanoid:FindFirstChildWhichIsA("Animator")
+	if not animator then
+		animator = Instance.new("Animator", humanoid)
+	end
+
+	-- Load run animation manually
+	local runAnim = Instance.new("Animation")
+	runAnim.AnimationId = runAnimId
+	runTrack = animator:LoadAnimation(runAnim)
+	runTrack.Priority = Enum.AnimationPriority.Movement
+	runTrack:AdjustSpeed(6) -- Make it visually fast
+	runTrack:Play()
+
+	-- Stop when not moving
+	runConnection = game:GetService("RunService").RenderStepped:Connect(function()
+		if humanoid.MoveDirection.Magnitude == 0 then
+			if runTrack.IsPlaying then runTrack:Stop() end
+		else
+			if not runTrack.IsPlaying then
+				runTrack:Play()
+				runTrack:AdjustSpeed(6)
+			end
+		end
+	end)
+end
+
+local function stopRunAnimation()
+	if runTrack then runTrack:Stop() end
+	if runConnection then runConnection:Disconnect() end
+end
+
+-- === Toggle Egor Mode ===
+local function enableEgor()
+	local char = player.Character
+	if not char then return end
+	local humanoid = char:FindFirstChild("Humanoid")
+	if not humanoid then return end
+
+	humanoid.WalkSpeed = 3
+	playRunAnimation(humanoid)
+	button.Text = "Egor: ON"
+end
+
+local function disableEgor()
+	local char = player.Character
+	if not char then return end
+	local humanoid = char:FindFirstChild("Humanoid")
+	if not humanoid then return end
+
+	humanoid.WalkSpeed = 16
+	stopRunAnimation()
+	button.Text = "Egor: OFF"
+end
+
+-- === Button Toggle ===
+button.MouseButton1Click:Connect(function()
+	egorEnabled = not egorEnabled
+	if egorEnabled then enableEgor() else disableEgor() end
+end)
+
+-- === On Character Spawn ===
+local function onCharacterAdded(char)
+	local humanoid = char:WaitForChild("Humanoid")
+	char:WaitForChild("Animate") -- Keep default animations like jump
+	task.wait(0.5)
+
+	if egorEnabled then
+		enableEgor()
+	else
+		disableEgor()
+	end
+end
+
+if player.Character then onCharacterAdded(player.Character) end
+player.CharacterAdded:Connect(onCharacterAdded)
