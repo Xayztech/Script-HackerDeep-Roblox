@@ -4,10 +4,10 @@ local LocalPlayer = Players.LocalPlayer
 
 -- Defaults
 local DEFAULTS = {
-    WalkSpeed = 99999999999999999999999999999999999999999999999999999999,
+    WalkSpeed = 99999999,
     JumpPower = 60,
     Gravity   = 0,
-    AnimSpeed = 99999999999999999999999999999999999999999999999999999999
+    AnimSpeed = 99999999
 }
 
 -- State
