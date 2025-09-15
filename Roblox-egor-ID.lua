@@ -4,10 +4,10 @@ local LocalPlayer = Players.LocalPlayer
 
 -- Defaults
 local DEFAULTS = {
-    WalkSpeed = 99,
-    JumpPower = 60,
-    Gravity   = 0,
-    AnimSpeed = 99
+    WalkSpeed = 16,
+    JumpPower = 50,
+    Gravity   = 196.2,
+    AnimSpeed = 5
 }
 
 -- State
@@ -38,7 +38,7 @@ local title = Instance.new("TextLabel", frame)
 title.Size               = UDim2.new(1,-20,0,18)
 title.Position           = UDim2.new(0,10,0,6)
 title.BackgroundTransparency = 1
-title.Text               = "Created By: XΛYZ ƬΣCΉ"
+title.Text               = "Roblox Egor Created By: XΛYZ ƬΣᄃΉ"
 title.Font               = Enum.Font.Gotham
 title.TextSize           = 12
 title.TextColor3         = Color3.fromRGB(200,200,200)
