@@ -1,40 +1,28 @@
---[[
-    Script: XAYZ ƬΣCΉ Hub (Versi Database GitHub + Penyimpanan Lokal)
-    Deskripsi: Mengambil daftar utama dari GitHub & menyimpan script tambahan pengguna secara permanen di perangkat mereka.
-]]
-
--- Bagian PENTING: Konfigurasi
-local GITHUB_DATABASE_URL = "https://raw.githubusercontent.com/Xayztech/Script-HackerDeep-Roblox/main/script_my.json" -- << GANTI DENGAN URL RAW JSON ANDA
-local LOCAL_SCRIPTS_PATH = "xyz_added_scripts.json" -- Nama file untuk menyimpan script tambahan pengguna
+local GITHUB_DATABASE_URL = "https://raw.githubusercontent.com/Xayztech/Script-HackerDeep-Roblox/main/script_my.json"
+local LOCAL_SCRIPTS_PATH = "xayz_save_script.json"
 local REQUIRED_KEY = "XAYZTECH#EMPEROR@11279108300088174971970"
 local KEY_WEBSITE_URL = "https://your-website-for-key.com"
 
--- Layanan yang dibutuhkan
 local HttpService = game:GetService("HttpService")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 
--- Cek environment
 if not game:IsLoaded() then game.Loaded:Wait() end
 if not getgenv then getgenv = function() return _G end end
 if not isfile or not writefile or not readfile then
-    warn("Executor tidak mendukung 'readfile'/'writefile'. Fitur penyimpanan tidak akan berfungsi.")
+    warn("Executor does not support 'readfile'/'writefile'. The save feature will not work.")
     local fake_storage = {}
     function isfile(path) return fake_storage[path] ~= nil end
     function readfile(path) return fake_storage[path] or "[]" end
     function writefile(path, content) fake_storage[path] = content end
 end
 
--- Variabel global untuk menyimpan daftar script
 local combined_script_database = {}
 
--- =============================================
--- BAGIAN 1: FUNGSI DATABASE & KUNCI
--- =============================================
 local function load_all_scripts()
     combined_script_database = {}
     
-    -- 1. Ambil dari GitHub (Database Utama)
+
     local success, response = pcall(function() return game:HttpGet(GITHUB_DATABASE_URL) end)
     if success then
         local decode_success, decoded_data = pcall(function() return HttpService:JSONDecode(response) end)
@@ -42,15 +30,14 @@ local function load_all_scripts()
             for _, script_data in ipairs(decoded_data) do
                 table.insert(combined_script_database, script_data)
             end
-            print("Database utama berhasil dimuat dari GitHub!")
+            print("Loading...")
         else
-            warn("Gagal parsing JSON dari GitHub:", decoded_data)
+            warn("Eror Reading:", decoded_data)
         end
     else
-        warn("Gagal mengambil data dari GitHub:", response)
+        warn("Eror Take Data:", response)
     end
 
-    -- 2. Ambil dari Penyimpanan Lokal (Database Pengguna)
     if isfile(LOCAL_SCRIPTS_PATH) then
         local local_content = readfile(LOCAL_SCRIPTS_PATH)
         local decode_success, local_data = pcall(function() return HttpService:JSONDecode(local_content) end)
@@ -58,19 +45,19 @@ local function load_all_scripts()
             for _, script_data in ipairs(local_data) do
                 table.insert(combined_script_database, script_data)
             end
-            print("Script lokal pengguna berhasil dimuat!")
+            print("User local script loaded successfully!")
         end
     end
 end
 
 local function save_local_script(new_script)
     local local_scripts = {}
-    -- Baca file yang ada terlebih dahulu
+
     if isfile(LOCAL_SCRIPTS_PATH) then
         local success, data = pcall(function() return HttpService:JSONDecode(readfile(LOCAL_SCRIPTS_PATH)) end)
         if success then local_scripts = data end
     end
-    -- Tambahkan script baru dan simpan kembali
+    
     table.insert(local_scripts, new_script)
     local success, encoded = pcall(function() return HttpService:JSONEncode(local_scripts) end)
     if success then
@@ -87,15 +74,11 @@ local function save_key(key)
     if writefile then writefile("kunci_xyz.txt", key) end
 end
 
--- =============================================
--- BAGIAN 2 & 3: UI LIBRARY & EFEK VISUAL (Tidak ada perubahan)
--- [Salin dan tempel kode dari jawaban sebelumnya untuk Bagian 2 & 3 di sini]
--- =============================================
 local UI = {}
 UI.DraggableWindows = {}
 function UI:CreateWindow(title)
     local screenGui = Instance.new("ScreenGui")
-    screenGui.Name = "XayzHub_MainGui"
+    screenGui.Name = "XayzHub MainGui"
     screenGui.ResetOnSpawn = false
     screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
     local mainFrame = Instance.new("Frame")
@@ -227,10 +210,6 @@ local function create_background_effects(parent)
     end
 end
 
--- =============================================
--- BAGIAN 4: LOGIKA APLIKASI UTAMA (Dengan perubahan)
--- =============================================
--- [Sebagian besar kode di sini sama, hanya 'add_script_popup' yang callback-nya diubah]
 local function execute_script(code)
     local func, err = loadstring(code)
     if func then pcall(func) else warn("Error loadstring:", err) end
@@ -243,7 +222,7 @@ local function show_confirmation(script_name, script_code)
     local msg = Instance.new("TextLabel")
     msg.Size = UDim2.new(1, -20, 0, 60)
     msg.Position = UDim2.new(0, 10, 0, 10)
-    msg.Text = "📢⚠️? Apakah anda yakin Ingin Menjalankan Script '".. script_name .."'?"
+    msg.Text = "📢⚠️? Are you sure you want to run the script? '".. script_name .."'?"
     msg.TextColor3 = Color3.fromRGB(255, 255, 255)
     msg.Font = Enum.Font.SourceSans
     msg.TextSize = 18
@@ -291,15 +270,15 @@ local function view_script(script_name, script_code)
     scriptBox.Parent = viewContent
 end
 local function add_script_popup(onAddCallback)
-    local addGui, addFrame, addContent = UI:CreateWindow("Add Script (Tersimpan di Perangkat Anda)")
+    local addGui, addFrame, addContent = UI:CreateWindow("Add Script (Saved on Your Device)")
     addFrame.Size = UDim2.new(0, 500, 0, 350)
     addFrame.Position = UDim2.new(0.5, -250, 0.5, -175)
     addGui.Parent = game.CoreGui
-    -- [UI untuk add_script_popup sama seperti sebelumnya, hanya callbacknya yang berbeda]
+
     local nameLabel = Instance.new("TextLabel")
     nameLabel.Size = UDim2.new(1, -20, 0, 20)
     nameLabel.Position = UDim2.new(0, 10, 0, 10)
-    nameLabel.Text = "Nama Script:"
+    nameLabel.Text = "Script Name:"
     nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
     nameLabel.Font = Enum.Font.SourceSans
     nameLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -311,12 +290,12 @@ local function add_script_popup(onAddCallback)
     nameBox.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
     nameBox.TextColor3 = Color3.fromRGB(0, 255, 0)
     nameBox.Font = Enum.Font.Code
-    nameBox.PlaceholderText = "Masukkan nama script..."
+    nameBox.PlaceholderText = "Enter the script name..."
     nameBox.Parent = addContent
     local codeLabel = Instance.new("TextLabel")
     codeLabel.Size = UDim2.new(1, -20, 0, 20)
     codeLabel.Position = UDim2.new(0, 10, 0, 70)
-    codeLabel.Text = "Kode (Lua atau Link URL):"
+    codeLabel.Text = "Code (Lua or URL Link):"
     codeLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
     codeLabel.Font = Enum.Font.SourceSans
     codeLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -331,7 +310,7 @@ local function add_script_popup(onAddCallback)
     codeBox.Font = Enum.Font.Code
     codeBox.TextXAlignment = Enum.TextXAlignment.Left
     codeBox.TextYAlignment = Enum.TextYAlignment.Top
-    codeBox.PlaceholderText = "Tempelkan link .lua atau kode lua langsung di sini"
+    codeBox.PlaceholderText = "Paste the .lua link or lua code directly here"
     codeBox.Parent = addContent
     local okButton = Instance.new("TextButton")
     okButton.Size = UDim2.new(1, -20, 0, 40)
@@ -389,7 +368,7 @@ function show_main_app()
     searchBox.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
     searchBox.TextColor3 = Color3.fromRGB(0, 255, 0)
     searchBox.Font = Enum.Font.Code
-    searchBox.PlaceholderText = "Cari script..."
+    searchBox.PlaceholderText = "Search script..."
     searchBox.Parent = contentFrame
 
     local scriptList = Instance.new("ScrollingFrame")
@@ -437,4 +416,154 @@ function show_main_app()
                 executeButton.Parent = scriptFrame
                 executeButton.MouseButton1Click:Connect(function() show_confirmation(script_data.Name, script_data.Code) end)
                 
-                local viewButton = Instance.
+                local viewButton = Instance.new("TextButton")
+                viewButton.Size = UDim2.new(0, 80, 0, 30)
+                viewButton.Position = UDim2.new(1, -180, 0.5, -15)
+                viewButton.BackgroundColor3 = Color3.fromRGB(0, 80, 150)
+                viewButton.Text = "View"
+                viewButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+                viewButton.Font = Enum.Font.Code
+                viewButton.Parent = scriptFrame
+                viewButton.MouseButton1Click:Connect(function() view_script(script_data.Name, script_data.Code) end)
+                
+                count = count + 1
+            end
+        end
+        scriptList.CanvasSize = UDim2.new(0, 0, 0, (40 + 5) * count)
+    end
+    
+    searchBox:GetPropertyChangedSignal("Text"):Connect(function() populate_scripts(searchBox.Text) end)
+    
+    addScriptButton.MouseButton1Click:Connect(function()
+        add_script_popup(function(new_script)
+            save_local_script(new_script)
+            table.insert(combined_script_database, new_script)
+            populate_scripts(searchBox.Text)
+        end)
+    end)
+
+    populate_scripts()
+end
+
+function show_loading_screen_and_start()
+    local loadingGui = Instance.new("ScreenGui")
+    loadingGui.Name = "XayzHub Loading..."
+    loadingGui.ResetOnSpawn = false
+    loadingGui.Parent = game.CoreGui
+    local background = Instance.new("Frame")
+    background.Size = UDim2.new(1, 0, 1, 0)
+    background.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    background.Parent = loadingGui
+    local title = Instance.new("TextLabel")
+    title.Size = UDim2.new(1, 0, 0, 50)
+    title.Position = UDim2.new(0, 0, 0.5, -80)
+    title.Text = "LOADING DATABASE..."
+    title.TextColor3 = Color3.fromRGB(0, 255, 0)
+    title.Font = Enum.Font.Code
+    title.TextSize = 40
+    title.BackgroundTransparency = 1
+    title.Parent = background
+    
+    load_all_scripts()
+    
+    title.Text = "XΛYZ ƬΣCΉ HUB ( BETA TEST )"
+    local progressBar = Instance.new("Frame")
+    progressBar.Size = UDim2.new(0.4, 0, 0, 30)
+    progressBar.Position = UDim2.new(0.5, -progressBar.AbsoluteSize.X/2, 0.5, -15)
+    progressBar.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+    progressBar.BorderColor3 = Color3.fromRGB(0, 255, 0)
+    progressBar.Parent = background
+    local progressFill = Instance.new("Frame")
+    progressFill.Size = UDim2.new(0, 0, 1, 0)
+    progressFill.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
+    progressFill.Parent = progressBar
+    local percentText = Instance.new("TextLabel")
+    percentText.Size = UDim2.new(1, 0, 1, 0)
+    percentText.Text = "0%"
+    percentText.TextColor3 = Color3.fromRGB(0, 0, 0)
+    percentText.Font = Enum.Font.Code
+    percentText.TextSize = 20
+    percentText.BackgroundTransparency = 1
+    percentText.Parent = progressFill
+    
+    progressFill:TweenSize(UDim2.new(1, 0, 1, 0), Enum.EasingDirection.Out, Enum.EasingStyle.Linear, 1)
+    for i = 0, 100 do percentText.Text = i .. "%"; wait(0.01) end
+    loadingGui:Destroy()
+
+    if check_key() then
+        show_main_app()
+    else
+
+        local keyGui = Instance.new("ScreenGui")
+        keyGui.Name = "XayzHub Key"
+        keyGui.ResetOnSpawn = false
+        keyGui.Parent = game.CoreGui
+        local background = Instance.new("Frame")
+        background.Size = UDim2.new(1, 0, 1, 0)
+        background.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+        background.BackgroundTransparency = 0.7
+        background.Parent = keyGui
+        local mainFrame = Instance.new("Frame")
+        mainFrame.Size = UDim2.new(0, 400, 0, 200)
+        mainFrame.Position = UDim2.new(0.5, -200, 0.5, -100)
+        mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+        mainFrame.BorderColor3 = Color3.fromRGB(0, 255, 0)
+        mainFrame.Parent = background
+        local title = Instance.new("TextLabel")
+        title.Size = UDim2.new(1, 0, 0, 40)
+        title.Text = "Enter Key"
+        title.TextColor3 = Color3.fromRGB(0, 255, 0)
+        title.Font = Enum.Font.Code
+        title.TextSize = 24
+        title.BackgroundTransparency = 1
+        title.Parent = mainFrame
+        local keyBox = Instance.new("TextBox")
+        keyBox.Size = UDim2.new(1, -20, 0, 40)
+        keyBox.Position = UDim2.new(0, 10, 0, 50)
+        keyBox.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
+        keyBox.TextColor3 = Color3.fromRGB(0, 255, 0)
+        keyBox.Font = Enum.Font.Code
+        keyBox.PlaceholderText = "Enter key here..."
+        keyBox.Parent = mainFrame
+        local statusLabel = Instance.new("TextLabel")
+        statusLabel.Size = UDim2.new(1, -20, 0, 20)
+        statusLabel.Position = UDim2.new(0, 10, 0, 95)
+        statusLabel.Text = ""
+        statusLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
+        statusLabel.Font = Enum.Font.SourceSans
+        statusLabel.BackgroundTransparency = 1
+        statusLabel.Parent = mainFrame
+        local getKeyButton = Instance.new("TextButton")
+        getKeyButton.Size = UDim2.new(0.45, 0, 0, 40)
+        getKeyButton.Position = UDim2.new(0, 10, 1, -50)
+        getKeyButton.BackgroundColor3 = Color3.fromRGB(0, 80, 150)
+        getKeyButton.Text = "Get Key"
+        getKeyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+        getKeyButton.Font = Enum.Font.Code
+        getKeyButton.Parent = mainFrame
+        getKeyButton.MouseButton1Click:Connect(function()
+            if setclipboard then setclipboard(KEY_WEBSITE_URL); statusLabel.TextColor3 = Color3.fromRGB(0, 255, 0); statusLabel.Text = "Link disalin! Membuka website..." else statusLabel.Text = "Executor tidak mendukung setclipboard." end
+            if identifyexecutor then pcall(identifyexecutor) end
+        end)
+        local submitButton = Instance.new("TextButton")
+        submitButton.Size = UDim2.new(0.45, 0, 0, 40)
+        submitButton.Position = UDim2.new(1, -10 - submitButton.AbsoluteSize.X, 1, -50)
+        submitButton.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
+        submitButton.Text = "Submit"
+        submitButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+        submitButton.Font = Enum.Font.Code
+        submitButton.Parent = mainFrame
+        submitButton.MouseButton1Click:Connect(function()
+            if keyBox.Text == REQUIRED_KEY then
+                save_key(keyBox.Text)
+                keyGui:Destroy()
+                show_main_app()
+            else
+                statusLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
+                statusLabel.Text = "Wrong key!"
+            end
+        end)
+    end
+end
+
+show_loading_screen_and_start()
