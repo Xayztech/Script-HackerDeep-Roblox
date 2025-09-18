@@ -66,12 +66,12 @@ local function save_local_script(new_script)
 end
 
 local function check_key()
-    if isfile and isfile("kunci_xyz.txt") and readfile("kunci_xyz.txt") == REQUIRED_KEY then return true end
+    if isfile and isfile("xayzkey_sv.txt") and readfile("xayzkey_sv.txt") == REQUIRED_KEY then return true end
     return false
 end
 
 local function save_key(key)
-    if writefile then writefile("kunci_xyz.txt", key) end
+    if writefile then writefile("xayzkey_sv.txt", key) end
 end
 
 local UI = {}
