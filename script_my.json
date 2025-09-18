@@ -1,0 +1,14 @@
+[
+  {
+    "Name": "Roblox Egor",
+    "Code": "loadstring(game:HttpGet(\"https://raw.githubusercontent.com/Xayztech/Script-HackerDeep-Roblox/refs/heads/main/Roblox-egor-ID.lua\", true) .. \"\\n\" .. game:HttpGet(\"https://raw.githubusercontent.com/Xayztech/Script-HackerDeep-Roblox/refs/heads/main/Roblox-egor-IDV2.lua\", true))()"
+  },
+  {
+    "Name": "Wallhop V1",
+    "Code": "loadstring(game:HttpGet(\"https://raw.githubusercontent.com/Xayztech/Script-HackerDeep-Roblox/refs/heads/main/Wallhop-ID.lua\", true))()"
+  },
+  {
+    "Name": "Wallhop V2",
+    "Code": "loadstring(game:HttpGet(\"https://raw.githubusercontent.com/Xayztech/Script-HackerDeep-Roblox/refs/heads/main/Wallhop-IDV2.lua\", true))()"
+  }
+]
