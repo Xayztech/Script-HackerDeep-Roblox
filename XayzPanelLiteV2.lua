@@ -5529,23 +5529,28 @@ end)
 local cloneTarget = ""
 local emoteIDTarget = ""
 
-CreateInput(PageUltimate, "CloneHolder", function(txt)
+local CloneTextBox = CreateInput(PageUltimate, "CloneHolder", function(txt)
     cloneTarget = txt
 end)
 
 local ColBlueUlt = Color3.fromRGB(0, 150, 255)
+
 CreateButton(PageUltimate, "CloneBtn", function()
-    if cloneTarget == "" then
+    local currentTarget = CloneTextBox.Text 
+    
+    if currentTarget == "" then
         ShowNotification(GetString("NotifErr"), GetString("CloneFail"))
         return
     end
     
+    ShowNotification("Mencari...", "Mencari Avatar: " .. currentTarget)
+    
     local success, userId = pcall(function()
-        local tonum = tonumber(cloneTarget)
+        local tonum = tonumber(currentTarget)
         if tonum then
             return tonum 
         else
-            return Players:GetUserIdFromNameAsync(cloneTarget) 
+            return Players:GetUserIdFromNameAsync(currentTarget) 
         end
     end)
     
@@ -5561,7 +5566,7 @@ CreateButton(PageUltimate, "CloneBtn", function()
                     humanoid:ApplyDescription(desc)
                     ShowNotification(GetString("NotifSucc"), GetString("CloneSucc"))
                 else
-                    ShowNotification(GetString("NotifErr"), "Client Blocked")
+                    ShowNotification(GetString("NotifErr"), "Executor memblokir fungsi ini")
                 end
             end
         end
@@ -5688,9 +5693,152 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
     end
 end)
 
-
 local AudioPlayer = Instance.new("Sound")
 AudioPlayer.Parent = CoreGui
+
+local PlayerContainer = Instance.new("Frame")
+PlayerContainer.Parent = PageMusic
+local PCSize = UDim2.new(1, -5, 0, 140)
+PlayerContainer.Size = PCSize
+PlayerContainer.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+
+local PCCorner = Instance.new("UICorner")
+PCCorner.CornerRadius = UDim.new(0, 8)
+PCCorner.Parent = PlayerContainer
+
+local AlbumArt = Instance.new("ImageLabel")
+AlbumArt.Parent = PlayerContainer
+local ArtSize = UDim2.new(0, 80, 0, 80)
+AlbumArt.Size = ArtSize
+local ArtPos = UDim2.new(0, 10, 0, 10)
+AlbumArt.Position = ArtPos
+AlbumArt.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+AlbumArt.Image = "rbxassetid://6031097225"
+
+local ArtCorner = Instance.new("UICorner")
+ArtCorner.CornerRadius = UDim.new(0, 8)
+ArtCorner.Parent = AlbumArt
+
+local NowPlayingTitle = Instance.new("TextLabel")
+NowPlayingTitle.Parent = PlayerContainer
+local NPSize = UDim2.new(1, -110, 0, 30)
+NowPlayingTitle.Size = NPSize
+local NPPos = UDim2.new(0, 100, 0, 15)
+NowPlayingTitle.Position = NPPos
+NowPlayingTitle.BackgroundTransparency = 1
+NowPlayingTitle.TextColor3 = Color3.fromRGB(0, 255, 200)
+NowPlayingTitle.Font = Enum.Font.GothamBold
+NowPlayingTitle.TextSize = 12
+NowPlayingTitle.TextXAlignment = Enum.TextXAlignment.Left
+NowPlayingTitle.TextWrapped = true
+RegisterLang(NowPlayingTitle, "NowPlaying", false)
+
+local ProgressBg = Instance.new("Frame")
+ProgressBg.Parent = PlayerContainer
+local PBgSize = UDim2.new(1, -110, 0, 4)
+ProgressBg.Size = PBgSize
+local PBgPos = UDim2.new(0, 100, 0, 60)
+ProgressBg.Position = PBgPos
+ProgressBg.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+ProgressBg.BorderSizePixel = 0
+
+local ProgressFill = Instance.new("Frame")
+ProgressFill.Parent = ProgressBg
+local PFillSize = UDim2.new(0, 0, 1, 0)
+ProgressFill.Size = PFillSize
+ProgressFill.BackgroundColor3 = Color3.fromRGB(30, 215, 96) -- Hijau Spotify
+ProgressFill.BorderSizePixel = 0
+
+local ProgressBall = Instance.new("Frame")
+ProgressBall.Parent = ProgressFill
+local PBallSize = UDim2.new(0, 10, 0, 10)
+ProgressBall.Size = PBallSize
+local PBallPos = UDim2.new(1, -5, 0.5, -5)
+ProgressBall.Position = PBallPos
+ProgressBall.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+
+local PBallCorner = Instance.new("UICorner")
+PBallCorner.CornerRadius = UDim.new(1, 0)
+PBallCorner.Parent = ProgressBall
+
+local ControlsFrame = Instance.new("Frame")
+ControlsFrame.Parent = PlayerContainer
+local CFSize = UDim2.new(1, -110, 0, 30)
+ControlsFrame.Size = CFSize
+local CFPos = UDim2.new(0, 100, 0, 80)
+ControlsFrame.Position = CFPos
+ControlsFrame.BackgroundTransparency = 1
+
+local CFLayout = Instance.new("UIListLayout")
+CFLayout.Parent = ControlsFrame
+CFLayout.FillDirection = Enum.FillDirection.Horizontal
+CFLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
+CFLayout.Padding = UDim.new(0, 5)
+
+local PrevBtn = Instance.new("TextButton")
+PrevBtn.Parent = ControlsFrame
+local PrevBSize = UDim2.new(0, 30, 0, 30)
+PrevBtn.Size = PrevBSize
+PrevBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 55)
+PrevBtn.Font = Enum.Font.GothamBold
+PrevBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+PrevBtn.Text = "⏮"
+
+local PrevBCorner = Instance.new("UICorner")
+PrevBCorner.CornerRadius = UDim.new(0, 6)
+PrevBCorner.Parent = PrevBtn
+
+local PlayPauseBtn = Instance.new("TextButton")
+PlayPauseBtn.Parent = ControlsFrame
+local PlPaBSize = UDim2.new(0, 50, 0, 30)
+PlayPauseBtn.Size = PlPaBSize
+PlayPauseBtn.BackgroundColor3 = Color3.fromRGB(30, 215, 96)
+PlayPauseBtn.Font = Enum.Font.GothamBold
+PlayPauseBtn.TextColor3 = Color3.fromRGB(0, 0, 0)
+PlayPauseBtn.Text = "||"
+
+local PlPaBCorner = Instance.new("UICorner")
+PlPaBCorner.CornerRadius = UDim.new(0, 6)
+PlPaBCorner.Parent = PlayPauseBtn
+
+local NextBtn = Instance.new("TextButton")
+NextBtn.Parent = ControlsFrame
+local NextBSize = UDim2.new(0, 30, 0, 30)
+NextBtn.Size = NextBSize
+NextBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 55)
+NextBtn.Font = Enum.Font.GothamBold
+NextBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+NextBtn.Text = "⏭"
+
+local NextBCorner = Instance.new("UICorner")
+NextBCorner.CornerRadius = UDim.new(0, 6)
+NextBCorner.Parent = NextBtn
+
+local StopMusicBtn = Instance.new("TextButton")
+StopMusicBtn.Parent = ControlsFrame
+local StopBSize = UDim2.new(0, 30, 0, 30)
+StopMusicBtn.Size = StopBSize
+StopMusicBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+StopMusicBtn.Font = Enum.Font.GothamBold
+StopMusicBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+StopMusicBtn.Text = "■"
+
+local StopBCorner = Instance.new("UICorner")
+StopBCorner.CornerRadius = UDim.new(0, 6)
+StopBCorner.Parent = StopMusicBtn
+
+local RepeatBtn = Instance.new("TextButton")
+RepeatBtn.Parent = ControlsFrame
+local RepBSize = UDim2.new(0, 30, 0, 30)
+RepeatBtn.Size = RepBSize
+RepeatBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 55)
+RepeatBtn.Font = Enum.Font.GothamBold
+RepeatBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+RepeatBtn.Text = "↻"
+
+local RepBCorner = Instance.new("UICorner")
+RepBCorner.CornerRadius = UDim.new(0, 6)
+RepBCorner.Parent = RepeatBtn
 
 local SearchContainer = Instance.new("Frame")
 SearchContainer.Parent = PageMusic
@@ -5709,7 +5857,7 @@ local SIPos = UDim2.new(0, 10, 0, 0)
 SearchIcon.Position = SIPos
 local SISize = UDim2.new(0, 20, 1, 0)
 SearchIcon.Size = SISize
-SearchIcon.Text = "O"
+SearchIcon.Text = "🔍"
 SearchIcon.TextColor3 = Color3.fromRGB(200, 200, 200)
 SearchIcon.TextSize = 14
 
@@ -5729,7 +5877,7 @@ RegisterLang(MusicSearchBox, "SearchMusic", true)
 
 local MusicListScroll = Instance.new("ScrollingFrame")
 MusicListScroll.Parent = PageMusic
-local MLSize = UDim2.new(1, -5, 0, 120)
+local MLSize = UDim2.new(1, -5, 0, 180)
 MusicListScroll.Size = MLSize
 MusicListScroll.BackgroundTransparency = 1
 MusicListScroll.ScrollBarThickness = 2
@@ -5740,85 +5888,8 @@ local MusicListLayout = Instance.new("UIListLayout")
 MusicListLayout.Parent = MusicListScroll
 MusicListLayout.Padding = UDim.new(0, 5)
 
-local NowPlayingTitle = Instance.new("TextLabel")
-NowPlayingTitle.Parent = PageMusic
-local NPSize = UDim2.new(1, -5, 0, 20)
-NowPlayingTitle.Size = NPSize
-NowPlayingTitle.BackgroundTransparency = 1
-NowPlayingTitle.TextColor3 = Color3.fromRGB(0, 255, 200)
-NowPlayingTitle.Font = Enum.Font.GothamBold
-NowPlayingTitle.TextSize = 12
-RegisterLang(NowPlayingTitle, "NowPlaying", false)
-
-local ControlsFrame = Instance.new("Frame")
-ControlsFrame.Parent = PageMusic
-local CFSize = UDim2.new(1, -5, 0, 35)
-ControlsFrame.Size = CFSize
-ControlsFrame.BackgroundTransparency = 1
-
-local CFLayout = Instance.new("UIListLayout")
-CFLayout.Parent = ControlsFrame
-CFLayout.FillDirection = Enum.FillDirection.Horizontal
-CFLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-CFLayout.Padding = UDim.new(0, 5)
-
-local PrevBtn = Instance.new("TextButton")
-PrevBtn.Parent = ControlsFrame
-local PrevBSize = UDim2.new(0, 75, 1, 0)
-PrevBtn.Size = PrevBSize
-PrevBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 55)
-PrevBtn.Font = Enum.Font.GothamBold
-PrevBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-PrevBtn.TextSize = 10
-RegisterLang(PrevBtn, "BtnPrev", false)
-
-local PrevBCorner = Instance.new("UICorner")
-PrevBCorner.CornerRadius = UDim.new(0, 6)
-PrevBCorner.Parent = PrevBtn
-
-local PlayPauseBtn = Instance.new("TextButton")
-PlayPauseBtn.Parent = ControlsFrame
-local PlPaBSize = UDim2.new(0, 90, 1, 0)
-PlayPauseBtn.Size = PlPaBSize
-PlayPauseBtn.BackgroundColor3 = Color3.fromRGB(30, 215, 96)
-PlayPauseBtn.Font = Enum.Font.GothamBold
-PlayPauseBtn.TextColor3 = Color3.fromRGB(0, 0, 0)
-PlayPauseBtn.TextSize = 10
-RegisterLang(PlayPauseBtn, "BtnPlayPause", false)
-
-local PlPaBCorner = Instance.new("UICorner")
-PlPaBCorner.CornerRadius = UDim.new(0, 6)
-PlPaBCorner.Parent = PlayPauseBtn
-
-local StopMusicBtn = Instance.new("TextButton")
-StopMusicBtn.Parent = ControlsFrame
-local StopBSize = UDim2.new(0, 60, 1, 0)
-StopMusicBtn.Size = StopBSize
-StopMusicBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
-StopMusicBtn.Font = Enum.Font.GothamBold
-StopMusicBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-StopMusicBtn.TextSize = 10
-RegisterLang(StopMusicBtn, "BtnStop", false)
-
-local StopBCorner = Instance.new("UICorner")
-StopBCorner.CornerRadius = UDim.new(0, 6)
-StopBCorner.Parent = StopMusicBtn
-
-local NextBtn = Instance.new("TextButton")
-NextBtn.Parent = ControlsFrame
-local NextBSize = UDim2.new(0, 75, 1, 0)
-NextBtn.Size = NextBSize
-NextBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 55)
-NextBtn.Font = Enum.Font.GothamBold
-NextBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-NextBtn.TextSize = 10
-RegisterLang(NextBtn, "BtnNext", false)
-
-local NextBCorner = Instance.new("UICorner")
-NextBCorner.CornerRadius = UDim.new(0, 6)
-NextBCorner.Parent = NextBtn
-
 local CurrentSongIndex = 1
+local isRepeat = false
 
 local function PlayIndex(index)
     local totalAudio = #AudioLibrary
@@ -5838,8 +5909,8 @@ local function PlayIndex(index)
     AudioPlayer.SoundId = combinedID
     AudioPlayer:Play()
     
-    local combineTitle = "-> " .. song.Name
-    NowPlayingTitle.Text = combineTitle
+    local combineTitle = song.Name
+    PlayPauseBtn.Text = "❚❚"
 end
 
 local function LoadMusicList(filter)
@@ -5861,7 +5932,7 @@ local function LoadMusicList(filter)
             btn.Size = btnSSize
             btn.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
             
-            local combinedName = "  > " .. song.Name
+            local combinedName = "  ♪ " .. song.Name
             btn.Text = combinedName
             btn.TextColor3 = Color3.fromRGB(255, 255, 255)
             btn.Font = Enum.Font.Gotham
@@ -5918,7 +5989,34 @@ PrevBtn.MouseButton1Click:Connect(function()
     PlayIndex(calcPv)
 end)
 
+RepeatBtn.MouseButton1Click:Connect(function()
+    isRepeat = not isRepeat
+    AudioPlayer.Looped = isRepeat
+    
+    if isRepeat then
+        RepeatBtn.BackgroundColor3 = Color3.fromRGB(30, 215, 96)
+    else
+        RepeatBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 55)
+    end
+end)
+
+AudioPlayer.Ended:Connect(function()
+    if not isRepeat then
+        local calcNx = CurrentSongIndex + 1
+        PlayIndex(calcNx)
+    end
+end)
+
 RunService.RenderStepped:Connect(function(deltaTime)
+    if AudioPlayer.IsLoaded and AudioPlayer.TimeLength > 0 then
+        local progress = AudioPlayer.TimePosition / AudioPlayer.TimeLength
+        local newSize = UDim2.new(progress, 0, 1, 0)
+        ProgressFill.Size = newSize
+    else
+        local zeroSize = UDim2.new(0, 0, 1, 0)
+        ProgressFill.Size = zeroSize
+    end
+
     if State.Fly and LocalPlayer.Character and FlyBodyVelocity and FlyBodyGyro then
         local hrp = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
         local hum = LocalPlayer.Character:FindFirstChild("Humanoid")
