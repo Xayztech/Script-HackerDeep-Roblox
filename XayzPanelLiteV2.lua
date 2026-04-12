@@ -1079,6 +1079,158 @@ local AudioLibrary = {
     {
         Name = "Alan Walker and Sia - Faded Cheap remix",
         ID = 514515964
+    },
+    {
+        Name = "Playful Massacre",
+        ID = 115520764429413
+    },
+    {
+        Name = "Smezir_2",
+        ID = 99084314273118
+    },
+    {
+        Name = "CLIMA LINDO",
+        ID = 118507373399694
+    },
+    {
+        Name = "bad apple",
+        ID = 123572020022002
+    },
+    {
+        Name = "DJ GOIB BLIZZARD",
+        ID = 83788133229034
+    },
+    {
+        Name = "Don't Let Me Down (Alan Walker)",
+        ID = 84621839524281
+    },
+    {
+        Name = "Don't Let Me Down (Alan Walker) V2",
+        ID = 131797878133678
+    },
+    {
+        Name = "Thunderclap (JJK)",
+        ID = 103590461924679
+    },
+    {
+        Name = "Waiting Room 2",
+        ID = 127554829179688
+    },
+    {
+        Name = "Hakari Dance Theme Private Pure Love Train",
+        ID = 136208016606825
+    },
+    {
+        Name = "Ai Dua Em Ve",
+        ID = 114079764270779
+    },
+    {
+        Name = "So retro forsaken music",
+        ID = 114463678931188
+    },
+    {
+        Name = "forsaken caramell music",
+        ID = 123048251088564
+    },
+    {
+        Name = "styleing gangnam",
+        ID = 86468479687169
+    },
+    {
+        Name = "Desperate Gamble",
+        ID = 127012663233191
+    },
+    {
+        Name = "Broken Stalls",
+        ID = 100342664971650
+    },
+    {
+        Name = "Infinite Void",
+        ID = 131649240815291
+    },
+    {
+        Name = "Cursed Showdown",
+        ID = 101593085288560
+    },
+    {
+        Name = "Vei Slay Solto",
+        ID = 119824506266281
+    },
+    {
+        Name = "AVAKIRI!",
+        ID = 89750212764961
+    },
+    {
+        Name = "PRESSAO BEM SOLTO (SLOWED)",
+        ID = 120021246334271
+    },
+    {
+        Name = "MONTAGEM CONMIDO",
+        ID = 93461183313089
+    },
+    {
+        Name = "FISSION (SPED UP)",
+        ID = 134011921316879
+    },
+    {
+        Name = "QUESTRO (SUPER SLOWED)",
+        ID = 90675169478235
+    },
+    {
+        Name = "FUNK FORTADA (SLOWED)",
+        ID = 73351216000380
+    },
+    {
+        Name = "BRUXANZION",
+        ID = 110991416454626
+    },
+    {
+        Name = "FUNK OSIGMA (SLOWED)",
+        ID = 77659460864754
+    },
+    {
+        Name = "BOOYA",
+        ID = 101772318848071
+    },
+    {
+        Name = "FUSION (ORIGINAL)",
+        ID = 89180400948567
+    },
+    {
+        Name = "NOVA LA NOCHE (ULTRA SLOWED)",
+        ID = 94032061631217
+    },
+    {
+        Name = "MELODIA DE VERAO (ULTRA SPED UP)",
+        ID = 72844613532784
+    },
+    {
+        Name = "FUSION (SLOWED)",
+        ID = 92500405029901
+    },
+    {
+        Name = "XENON",
+        ID = 127502623565534
+    },
+    {
+        Name = "FISSION (ORIGINAL)",
+        ID = 118349786848415
+    },
+    {
+        Name = "ESCALATE",
+        ID = 85306184126616
+    },
+    {
+        Name = "RESISTANCE TREINAMENTO (SLOWED)",
+        ID = 139470412088097
+    },
+    {
+        Name = "CRYSTAL LINK (SUPER SLOWED)",
+        ID = 79400027040201
+    },
+    {
+        Name = "UH BUFON VEI (OVER SLOWED)",
+        ID = 133815463890793
     }
 }
 
@@ -5536,43 +5688,44 @@ end)
 local ColBlueUlt = Color3.fromRGB(0, 150, 255)
 
 CreateButton(PageUltimate, "CloneBtn", function()
-    local currentTarget = CloneTextBox.Text 
+    local currentTarget = cloneTarget 
     
     if currentTarget == "" then
         ShowNotification(GetString("NotifErr"), GetString("CloneFail"))
         return
     end
     
-    ShowNotification("Mencari...", "Mencari Avatar: " .. currentTarget)
+    ShowNotification("Searching...", "Searching for data " .. currentTarget)
     
-    local success, userId = pcall(function()
-        local tonum = tonumber(currentTarget)
-        if tonum then
-            return tonum 
-        else
-            return Players:GetUserIdFromNameAsync(currentTarget) 
-        end
-    end)
-    
-    if success and userId then
-        local char = LocalPlayer.Character
-        if char then
-            local humanoid = char:FindFirstChild("Humanoid")
-            if humanoid then
-                local descSuccess, desc = pcall(function()
-                    return Players:GetHumanoidDescriptionFromUserId(userId)
-                end)
-                if descSuccess and desc then
-                    humanoid:ApplyDescription(desc)
-                    ShowNotification(GetString("NotifSucc"), GetString("CloneSucc"))
-                else
-                    ShowNotification(GetString("NotifErr"), "Executor memblokir fungsi ini")
+    task.spawn(function()
+        local success, userId = pcall(function()
+            local tonum = tonumber(currentTarget)
+            if tonum then
+                return tonum 
+            else
+                return Players:GetUserIdFromNameAsync(currentTarget) 
+            end
+        end)
+        
+        if success and userId then
+            local char = LocalPlayer.Character
+            if char then
+                local humanoid = char:FindFirstChild("Humanoid")
+                if humanoid then
+                    local desc = Players:GetHumanoidDescriptionFromUserId(userId)
+                    
+                    if desc then
+                        humanoid:ApplyDescription(desc)
+                        ShowNotification(GetString("NotifSucc"), GetString("CloneSucc"))
+                    else
+                        ShowNotification(GetString("NotifErr"), "Gagal memuat avatar")
+                    end
                 end
             end
+        else
+            ShowNotification(GetString("NotifErr"), GetString("CloneFail"))
         end
-    else
-        ShowNotification(GetString("NotifErr"), GetString("CloneFail"))
-    end
+    end)
 end, ColBlueUlt)
 
 local ColPurp = Color3.fromRGB(150, 50, 255)
@@ -5910,7 +6063,9 @@ local function PlayIndex(index)
     AudioPlayer:Play()
     
     local combineTitle = song.Name
-    PlayPauseBtn.Text = "❚❚"
+    NowPlayingTitle.Text = combineTitle
+    
+    PlayPauseBtn.Text = "||"
 end
 
 local function LoadMusicList(filter)
