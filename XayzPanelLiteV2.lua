@@ -1245,7 +1245,7 @@ local DefaultLighting = {
 
 local State = {
     Fly = false,
-    FlySpeed = 50,
+    FlySpeed = 1,
     Noclip = false,
     GodMode = false,
     InfJump = false,
@@ -4202,7 +4202,7 @@ RegisterLang(TitleLabel, "Title", false)
 
 MinimizeBtn.Parent = Header
 MinimizeBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 50)
-MinimizeBtn.Position = UDim2.new(1, -70, 0.5, -12)
+MinimizeBtn.Position = UDim2.new(1, -100, 0.5, -12)
 MinimizeBtn.Size = UDim2.new(0, 24, 0, 24)
 MinimizeBtn.Font = Enum.Font.GothamBold
 MinimizeBtn.Text = "-"
@@ -4216,17 +4216,36 @@ MinCorner.Parent = MinimizeBtn
 
 MaximizeBtn.Parent = Header
 MaximizeBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 50)
-MaximizeBtn.Position = UDim2.new(1, -35, 0.5, -12)
+MaximizeBtn.Position = UDim2.new(1, -65, 0.5, -12)
 MaximizeBtn.Size = UDim2.new(0, 24, 0, 24)
 MaximizeBtn.Font = Enum.Font.GothamBold
-MaximizeBtn.Text = "X"
+MaximizeBtn.Text = "□"
 MaximizeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-MaximizeBtn.TextSize = 14
+MaximizeBtn.TextSize = 18
 MaximizeBtn.ZIndex = 3
 
 local MaxCorner = Instance.new("UICorner")
 MaxCorner.CornerRadius = UDim.new(0, 6)
 MaxCorner.Parent = MaximizeBtn
+
+local CloseBtn = Instance.new("TextButton")
+CloseBtn.Parent = Header
+CloseBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+CloseBtn.Position = UDim2.new(1, -30, 0.5, -12)
+CloseBtn.Size = UDim2.new(0, 24, 0, 24)
+CloseBtn.Font = Enum.Font.GothamBold
+CloseBtn.Text = "X"
+CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseBtn.TextSize = 14
+CloseBtn.ZIndex = 3
+
+local CloseCorner = Instance.new("UICorner")
+CloseCorner.CornerRadius = UDim.new(0, 6)
+CloseCorner.Parent = CloseBtn
+
+CloseBtn.MouseButton1Click:Connect(function()
+    ScreenGui:Destroy()
+end)
 
 Sidebar.Name = "Sidebar"
 Sidebar.Parent = MainFrame
@@ -4446,6 +4465,87 @@ local function CreateInput(page, langKey, callback)
     return Box
 end
 
+local function CreateStepper(page, langKey, callback)
+    local Frame = Instance.new("Frame")
+    Frame.Parent = page
+    Frame.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+    Frame.Size = UDim2.new(1, -5, 0, 35)
+    local FCorner = Instance.new("UICorner")
+    FCorner.CornerRadius = UDim.new(0, 6)
+    FCorner.Parent = Frame
+
+    local Label = Instance.new("TextLabel")
+    Label.Parent = Frame
+    Label.BackgroundTransparency = 1
+    Label.Position = UDim2.new(0, 10, 0, 0)
+    Label.Size = UDim2.new(0.4, 0, 1, 0)
+    Label.Font = Enum.Font.GothamSemibold
+    Label.TextColor3 = Color3.fromRGB(230, 230, 230)
+    Label.TextSize = 12
+    Label.TextXAlignment = Enum.TextXAlignment.Left
+    RegisterLang(Label, langKey, false)
+
+    local MinusBtn = Instance.new("TextButton")
+    MinusBtn.Parent = Frame
+    MinusBtn.Position = UDim2.new(1, -100, 0.5, -12)
+    MinusBtn.Size = UDim2.new(0, 24, 0, 24)
+    MinusBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    MinusBtn.Text = "-"
+    MinusBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    local MCorner = Instance.new("UICorner")
+    MCorner.CornerRadius = UDim.new(0, 4)
+    MCorner.Parent = MinusBtn
+
+    local ValueBox = Instance.new("TextBox")
+    ValueBox.Parent = Frame
+    ValueBox.Position = UDim2.new(1, -70, 0.5, -12)
+    ValueBox.Size = UDim2.new(0, 34, 0, 24)
+    ValueBox.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+    ValueBox.Text = tostring(State.FlySpeed)
+    ValueBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+    local VCorner = Instance.new("UICorner")
+    VCorner.CornerRadius = UDim.new(0, 4)
+    VCorner.Parent = ValueBox
+
+    local PlusBtn = Instance.new("TextButton")
+    PlusBtn.Parent = Frame
+    PlusBtn.Position = UDim2.new(1, -30, 0.5, -12)
+    PlusBtn.Size = UDim2.new(0, 24, 0, 24)
+    PlusBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    PlusBtn.Text = "+"
+    PlusBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    local PCorner = Instance.new("UICorner")
+    PCorner.CornerRadius = UDim.new(0, 4)
+    PCorner.Parent = PlusBtn
+
+    local function update(newVal)
+        State.FlySpeed = newVal
+        ValueBox.Text = tostring(State.FlySpeed)
+        callback(State.FlySpeed)
+    end
+
+    MinusBtn.MouseButton1Click:Connect(function()
+        if State.FlySpeed > 1 then
+            update(State.FlySpeed - 1)
+        end
+    end)
+
+    PlusBtn.MouseButton1Click:Connect(function()
+        update(State.FlySpeed + 1)
+    end)
+
+    ValueBox.FocusLost:Connect(function()
+        local num = tonumber(ValueBox.Text)
+        if num and num >= 1 then
+            update(num)
+        else
+            update(1)
+        end
+    end)
+
+    return Frame
+end
+
 local function CreateButton(page, langKey, callback, color)
     local Btn = Instance.new("TextButton")
     local Corner = Instance.new("UICorner")
@@ -4530,67 +4630,86 @@ end
 
 local FlyBodyVelocity = nil
 local FlyBodyGyro = nil
+local tpwalking = false
 
 local function StartFly()
     local char = LocalPlayer.Character
-    if not char then
-        return
-    end
-    
-    local hrp = char:FindFirstChild("HumanoidRootPart")
-    local hum = char:FindFirstChild("Humanoid")
-    
-    if not hrp or not hum then
-        return
-    end
+    if not char then return end
+    local hum = char:FindFirstChildWhichIsA("Humanoid")
+    if not hum then return end
 
-    for _, v in pairs(hrp:GetChildren()) do
-        if v.Name == "XayzFlyVel" or v.Name == "XayzFlyGyro" then
-            v:Destroy()
-        end
+    tpwalking = true
+
+    char.Animate.Disabled = true
+    for i,v in next, hum:GetPlayingAnimationTracks() do
+        v:AdjustSpeed(0)
     end
 
-    FlyBodyVelocity = Instance.new("BodyVelocity")
-    FlyBodyVelocity.Name = "XayzFlyVel"
-    
-    local MaxF = Vector3.new(Math.huge, Math.huge, Math.huge)
-    FlyBodyVelocity.MaxForce = MaxF
-    
-    local VelZero = Vector3.new(0,0,0)
-    FlyBodyVelocity.Velocity = VelZero
-    FlyBodyVelocity.Parent = hrp
+    hum:SetStateEnabled(Enum.HumanoidStateType.Climbing,false)
+    hum:SetStateEnabled(Enum.HumanoidStateType.FallingDown,false)
+    hum:SetStateEnabled(Enum.HumanoidStateType.Flying,false)
+    hum:SetStateEnabled(Enum.HumanoidStateType.Freefall,false)
+    hum:SetStateEnabled(Enum.HumanoidStateType.GettingUp,false)
+    hum:SetStateEnabled(Enum.HumanoidStateType.Jumping,false)
+    hum:SetStateEnabled(Enum.HumanoidStateType.Landed,false)
+    hum:SetStateEnabled(Enum.HumanoidStateType.Physics,false)
+    hum:SetStateEnabled(Enum.HumanoidStateType.PlatformStanding,false)
+    hum:SetStateEnabled(Enum.HumanoidStateType.Ragdoll,false)
+    hum:SetStateEnabled(Enum.HumanoidStateType.Running,false)
+    hum:SetStateEnabled(Enum.HumanoidStateType.RunningNoPhysics,false)
+    hum:SetStateEnabled(Enum.HumanoidStateType.Seated,false)
+    hum:SetStateEnabled(Enum.HumanoidStateType.StrafingNoPhysics,false)
+    hum:SetStateEnabled(Enum.HumanoidStateType.Swimming,false)
+    hum:ChangeState(Enum.HumanoidStateType.Swimming)
 
-    FlyBodyGyro = Instance.new("BodyGyro")
-    FlyBodyGyro.Name = "XayzFlyGyro"
+    local hb = game:GetService("RunService").Heartbeat
     
-    local MaxT = Vector3.new(Math.huge, Math.huge, Math.huge)
-    FlyBodyGyro.MaxTorque = MaxT
-    FlyBodyGyro.P = 10000
-    FlyBodyGyro.D = 100
-    FlyBodyGyro.CFrame = hrp.CFrame
-    FlyBodyGyro.Parent = hrp
-
-    hum.PlatformStand = true
+    for i = 1, State.FlySpeed do
+        task.spawn(function()
+            while tpwalking and hb:Wait() and char and hum and hum.Parent do
+                if hum.MoveDirection.Magnitude > 0 then
+                    char:TranslateBy(hum.MoveDirection)
+                end
+            end
+        end)
+    end
 end
 
 local function EndFly()
+    tpwalking = false
     local char = LocalPlayer.Character
     if char then
-        local hrp = char:FindFirstChild("HumanoidRootPart")
-        if hrp then
-            for _, v in pairs(hrp:GetChildren()) do
-                if v.Name == "XayzFlyVel" or v.Name == "XayzFlyGyro" then
-                    v:Destroy()
-                end
-            end
-        end
-        local hum = char:FindFirstChild("Humanoid")
+        local hum = char:FindFirstChildWhichIsA("Humanoid")
         if hum then
-            hum.PlatformStand = false
+            hum:SetStateEnabled(Enum.HumanoidStateType.Climbing,true)
+            hum:SetStateEnabled(Enum.HumanoidStateType.FallingDown,true)
+            hum:SetStateEnabled(Enum.HumanoidStateType.Flying,true)
+            hum:SetStateEnabled(Enum.HumanoidStateType.Freefall,true)
+            hum:SetStateEnabled(Enum.HumanoidStateType.GettingUp,true)
+            hum:SetStateEnabled(Enum.HumanoidStateType.Jumping,true)
+            hum:SetStateEnabled(Enum.HumanoidStateType.Landed,true)
+            hum:SetStateEnabled(Enum.HumanoidStateType.Physics,true)
+            hum:SetStateEnabled(Enum.HumanoidStateType.PlatformStanding,true)
+            hum:SetStateEnabled(Enum.HumanoidStateType.Ragdoll,true)
+            hum:SetStateEnabled(Enum.HumanoidStateType.Running,true)
+            hum:SetStateEnabled(Enum.HumanoidStateType.RunningNoPhysics,true)
+            hum:SetStateEnabled(Enum.HumanoidStateType.Seated,true)
+            hum:SetStateEnabled(Enum.HumanoidStateType.StrafingNoPhysics,true)
+            hum:SetStateEnabled(Enum.HumanoidStateType.Swimming,true)
+            hum:ChangeState(Enum.HumanoidStateType.RunningNoPhysics)
+        end
+        if char:FindFirstChild("Animate") then
+            char.Animate.Disabled = false
         end
     end
-    FlyBodyVelocity = nil
-    FlyBodyGyro = nil
+end
+
+local function UpdateFlySpeed()
+    if tpwalking then
+        EndFly()
+        task.wait(0.1)
+        StartFly()
+    end
 end
 
 local function ApplyStats()
@@ -4690,13 +4809,8 @@ CreateToggle(PageMain, "Fly", function(val)
     end
 end)
 
-CreateInput(PageMain, "FlySpeed", function(txt)
-    local num = tonumber(txt)
-    if num then
-        State.FlySpeed = num
-    else
-        State.FlySpeed = 50
-    end
+CreateStepper(PageMain, "FlySpeed", function(newSpeed)
+    UpdateFlySpeed() 
 end)
 
 CreateToggle(PageMain, "InfJump", function(val)
@@ -6172,24 +6286,6 @@ RunService.RenderStepped:Connect(function(deltaTime)
         ProgressFill.Size = zeroSize
     end
 
-    if State.Fly and LocalPlayer.Character and FlyBodyVelocity and FlyBodyGyro then
-        local hrp = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-        local hum = LocalPlayer.Character:FindFirstChild("Humanoid")
-        if hrp and hum then
-            FlyBodyGyro.CFrame = Camera.CFrame
-            local moveDir = hum.MoveDirection
-            local speed = State.FlySpeed
-            
-            if moveDir.Magnitude > 0 then
-                local multVel = Camera.CFrame.LookVector * speed
-                FlyBodyVelocity.Velocity = multVel
-            else
-                local zeroVel = Vector3.new(0, 0, 0)
-                FlyBodyVelocity.Velocity = zeroVel
-            end
-        end
-    end
-
     if State.Tornado and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
         local HRP = LocalPlayer.Character.HumanoidRootPart
         for _, part in pairs(Workspace:GetDescendants()) do
@@ -6273,6 +6369,41 @@ RunService.Heartbeat:Connect(function()
                 Hum.Health = Hum.MaxHealth
             end
             Hum:SetStateEnabled(Enum.HumanoidStateType.Dead, false)
+        end
+    end
+end)
+
+RunService.Stepped:Connect(function()
+    if State.AntiFling and LocalPlayer.Character then
+        local rootPart = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+        if not rootPart then return end
+
+        for _, player in pairs(Players:GetPlayers()) do
+            if player ~= LocalPlayer and player.Character then
+                for _, part in pairs(player.Character:GetDescendants()) do
+                    if part:IsA("BasePart") then
+                        part.CanCollide = false
+                        part.Velocity = Vector3.new(0, 0, 0)
+                        part.RotVelocity = Vector3.new(0, 0, 0)
+                    end
+                end
+            end
+        end
+
+        local overlapParams = OverlapParams.new()
+        overlapParams.FilterDescendantsInstances = {LocalPlayer.Character}
+        overlapParams.FilterType = Enum.RaycastFilterType.Exclude
+
+        local nearbyParts = Workspace:GetPartBoundsInRadius(rootPart.Position, 15, overlapParams)
+        
+        for _, part in pairs(nearbyParts) do
+            if part:IsA("BasePart") and not part.Anchored then
+                if part.Velocity.Magnitude > 50 or part.RotVelocity.Magnitude > 50 then
+                    part.CanCollide = false
+                    part.Velocity = Vector3.new(0, 0, 0)
+                    part.RotVelocity = Vector3.new(0, 0, 0)
+                end
+            end
         end
     end
 end)
