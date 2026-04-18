@@ -4025,16 +4025,6 @@ local LocalizedElements = {
 
 }
 
-for lang, data in pairs(Translations) do
-    data["ToggleESP"] = "ESP (Wallhack & Info)"
-    data["ToggleAimbot"] = "Aimbot (Auto Lock)"
-    data["ToggleFOV"] = "Show FOV (Circle)"
-    data["SetFOV"] = "Set FOV Size (Number)"
-    data["SwitchAimPart"] = "Change Aim Target (Head/Torso)"
-    data["SetCameraPOV"] = "Set Camera POV (1 - 120)"
-    data["ToggleFling"] = "Super Touch Fling"
-end
-
 local function RegisterLang(instance, key, isPlaceholder)
     local item = {
         Element = instance,
