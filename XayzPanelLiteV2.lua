@@ -4628,75 +4628,69 @@ local function CreateAdvancedMenu(parent, langKey, contentFunc)
     return MenuFrame
 end
 
-local FlyBodyVelocity = nil
-local FlyBodyGyro = nil
+local FlyLoop = nil
+local FlyBV = nil
+local FlyBG = nil
 local tpwalking = false
 
 local function StartFly()
     local char = LocalPlayer.Character
     if not char then return end
     local hum = char:FindFirstChildWhichIsA("Humanoid")
-    if not hum then return end
+    local root = char:FindFirstChild("HumanoidRootPart")
+    if not hum or not root then return end
 
+    local torso = char:FindFirstChild("Torso") or char:FindFirstChild("UpperTorso")
+    if not torso then return end
+
+    if FlyBV then FlyBV:Destroy() end
+    if FlyBG then FlyBG:Destroy() end
     tpwalking = true
 
-    char.Animate.Disabled = true
-    for i,v in next, hum:GetPlayingAnimationTracks() do
-        v:AdjustSpeed(0)
-    end
+    FlyBG = Instance.new("BodyGyro")
+    FlyBG.P = 9e4
+    FlyBG.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
+    FlyBG.CFrame = torso.CFrame
+    FlyBG.Parent = torso
 
-    hum:SetStateEnabled(Enum.HumanoidStateType.Climbing,false)
-    hum:SetStateEnabled(Enum.HumanoidStateType.FallingDown,false)
-    hum:SetStateEnabled(Enum.HumanoidStateType.Flying,false)
-    hum:SetStateEnabled(Enum.HumanoidStateType.Freefall,false)
-    hum:SetStateEnabled(Enum.HumanoidStateType.GettingUp,false)
-    hum:SetStateEnabled(Enum.HumanoidStateType.Jumping,false)
-    hum:SetStateEnabled(Enum.HumanoidStateType.Landed,false)
-    hum:SetStateEnabled(Enum.HumanoidStateType.Physics,false)
-    hum:SetStateEnabled(Enum.HumanoidStateType.PlatformStanding,false)
-    hum:SetStateEnabled(Enum.HumanoidStateType.Ragdoll,false)
-    hum:SetStateEnabled(Enum.HumanoidStateType.Running,false)
-    hum:SetStateEnabled(Enum.HumanoidStateType.RunningNoPhysics,false)
-    hum:SetStateEnabled(Enum.HumanoidStateType.Seated,false)
-    hum:SetStateEnabled(Enum.HumanoidStateType.StrafingNoPhysics,false)
-    hum:SetStateEnabled(Enum.HumanoidStateType.Swimming,false)
-    hum:ChangeState(Enum.HumanoidStateType.Swimming)
+    FlyBV = Instance.new("BodyVelocity")
+    FlyBV.Velocity = Vector3.new(0, 0, 0)
+    FlyBV.MaxForce = Vector3.new(9e9, 9e9, 9e9)
+    FlyBV.Parent = torso
 
-    local hb = game:GetService("RunService").Heartbeat
+    hum.PlatformStand = true
     
-    for i = 1, State.FlySpeed do
-        task.spawn(function()
-            while tpwalking and hb:Wait() and char and hum and hum.Parent do
-                if hum.MoveDirection.Magnitude > 0 then
-                    char:TranslateBy(hum.MoveDirection)
-                end
+    char.Animate.Disabled = true
+    for _, v in next, hum:GetPlayingAnimationTracks() do v:Stop() end
+
+    FlyLoop = RunService.RenderStepped:Connect(function()
+        if FlyBV and FlyBG and char.Parent then
+            FlyBG.CFrame = Camera.CFrame
+            
+            local moveDir = hum.MoveDirection
+            if moveDir.Magnitude > 0 then
+                FlyBV.Velocity = Camera.CFrame.LookVector * (moveDir.Magnitude * (State.FlySpeed * 50))
+            else
+                FlyBV.Velocity = Vector3.new(0, 0, 0)
             end
-        end)
-    end
+        else
+            if FlyLoop then FlyLoop:Disconnect() end
+        end
+    end)
 end
 
 local function EndFly()
     tpwalking = false
+    if FlyLoop then FlyLoop:Disconnect() end
+    if FlyBV then FlyBV:Destroy() end
+    if FlyBG then FlyBG:Destroy() end
+    
     local char = LocalPlayer.Character
     if char then
         local hum = char:FindFirstChildWhichIsA("Humanoid")
         if hum then
-            hum:SetStateEnabled(Enum.HumanoidStateType.Climbing,true)
-            hum:SetStateEnabled(Enum.HumanoidStateType.FallingDown,true)
-            hum:SetStateEnabled(Enum.HumanoidStateType.Flying,true)
-            hum:SetStateEnabled(Enum.HumanoidStateType.Freefall,true)
-            hum:SetStateEnabled(Enum.HumanoidStateType.GettingUp,true)
-            hum:SetStateEnabled(Enum.HumanoidStateType.Jumping,true)
-            hum:SetStateEnabled(Enum.HumanoidStateType.Landed,true)
-            hum:SetStateEnabled(Enum.HumanoidStateType.Physics,true)
-            hum:SetStateEnabled(Enum.HumanoidStateType.PlatformStanding,true)
-            hum:SetStateEnabled(Enum.HumanoidStateType.Ragdoll,true)
-            hum:SetStateEnabled(Enum.HumanoidStateType.Running,true)
-            hum:SetStateEnabled(Enum.HumanoidStateType.RunningNoPhysics,true)
-            hum:SetStateEnabled(Enum.HumanoidStateType.Seated,true)
-            hum:SetStateEnabled(Enum.HumanoidStateType.StrafingNoPhysics,true)
-            hum:SetStateEnabled(Enum.HumanoidStateType.Swimming,true)
-            hum:ChangeState(Enum.HumanoidStateType.RunningNoPhysics)
+            hum.PlatformStand = false
+            hum:ChangeState(Enum.HumanoidStateType.GettingUp)
         end
         if char:FindFirstChild("Animate") then
             char.Animate.Disabled = false
