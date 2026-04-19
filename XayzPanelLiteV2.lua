@@ -5873,6 +5873,10 @@ CreateToggle(PageUltimate, "AntiFlingBtn", function(val)
     State.AntiFling = val
 end)
 
+CreateToggle(PageUltimate, "ToggleFling", function(val)
+    State.SuperFling = val
+end)
+
 local ColOrng = Color3.fromRGB(255, 150, 0)
 CreateButton(PageUltimate, "NDSBtn", function()
     ShowNotification(GetString("DisasterT"), GetString("DisasterD"))
@@ -6283,6 +6287,10 @@ AudioPlayer.Ended:Connect(function()
 end)
 
 RunService.RenderStepped:Connect(function(deltaTime)
+    if State.SuperFling and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        LocalPlayer.Character.HumanoidRootPart.RotVelocity = Vector3.new(0, 0, 0)
+    end
+    
     if AudioPlayer.IsLoaded and AudioPlayer.TimeLength > 0 then
         local progress = AudioPlayer.TimePosition / AudioPlayer.TimeLength
         local newSize = UDim2.new(progress, 0, 1, 0)
@@ -6380,6 +6388,10 @@ RunService.Heartbeat:Connect(function()
 end)
 
 RunService.Stepped:Connect(function()
+    if State.SuperFling and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        LocalPlayer.Character.HumanoidRootPart.RotVelocity = Vector3.new(50000, 50000, 50000)
+    end
+    
     if State.AntiFling and LocalPlayer.Character then
         local rootPart = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
         if not rootPart then return end
