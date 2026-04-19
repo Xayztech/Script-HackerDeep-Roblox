@@ -2,18 +2,14 @@ local TweenService = game:GetService("TweenService")
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
+local CoreGui = game:GetService("CoreGui")
+local VirtualInputManager = game:GetService("VirtualInputManager")
 local Lighting = game:GetService("Lighting")
 local Stats = game:GetService("Stats")
 local Workspace = game:GetService("Workspace")
 
-local CoreGui
-pcall(function() CoreGui = game:GetService("CoreGui") end)
-
-local VirtualInputManager
-pcall(function() VirtualInputManager = game:GetService("VirtualInputManager") end)
-
 local LocalPlayer = Players.LocalPlayer
-local Camera = Workspace.CurrentCamera or Workspace:FindFirstChild("Camera")
+local Camera = Workspace.CurrentCamera
 
 local AudioLibrary = {
     {
@@ -4072,20 +4068,23 @@ end
 
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "XayzExV3"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
-local successGui = false
-if CoreGui then
-    successGui, _ = pcall(function()
-        local targetGui = (gethui and gethui()) or CoreGui
-        ScreenGui.Parent = targetGui
-    end)
-end
+local successGui, errGui = pcall(function()
+    if gethui then
+        ScreenGui.Parent = gethui()
+    elseif syn and syn.protect_gui then
+        syn.protect_gui(ScreenGui)
+        ScreenGui.Parent = CoreGui
+    else
+        ScreenGui.Parent = CoreGui
+    end
+end)
 
 if not successGui then
-    local playerGui = LocalPlayer:WaitForChild("PlayerGui", 5)
-    if playerGui then
-        ScreenGui.Parent = playerGui
-    end
+    local PlayerGui = LocalPlayer:FindFirstChild("PlayerGui") or LocalPlayer:WaitForChild("PlayerGui")
+    ScreenGui.Parent = PlayerGui
 end
 
 local function MakeDraggable(frame)
