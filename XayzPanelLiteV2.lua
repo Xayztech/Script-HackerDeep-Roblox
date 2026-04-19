@@ -1359,11 +1359,6 @@ local Translations = {
         CloneBtn = "CLONE AVATAR",
         HeadlessBtn = "ENABLE HEADLESS",
         AntiFlingBtn = "Anti Fling (No Collision)",
-        TglSuperFling = "Super Fling",
-        TglFlingV2 = "Fling V2",
-        SetFlingPower = "Set Fling Power",
-        TglDino = "Dino Animation",
-        TglPunch = "Punch Animation",
         NDSBtn = "TEST DISASTER POP-UP",
         EmoteHolder = "Enter Animation ID...",
         EmoteBtn = "PLAY ANIMATION",
@@ -5925,58 +5920,6 @@ CreateButton(PageUltimate, "EmoteBtn", function()
     end
 end, ColGrn)
 
-local dinoAnim = Instance.new("Animation")
-local punchAnim = Instance.new("Animation")
-punchAnim.AnimationId = "rbxassetid://84674780"
-local dinoTrack = nil
-local punchTrack = nil
-
-CreateToggle(PageUltimate, "TglDino", function(val)
-    State.DinoAnim = val
-    local char = LocalPlayer.Character
-    local hum = char and char:FindFirstChild("Humanoid")
-    if val and hum then
-        if hum.RigType == Enum.HumanoidRigType.R15 then
-            dinoAnim.AnimationId = "rbxassetid://204062532"
-        else
-            dinoAnim.AnimationId = "rbxassetid://20432871"
-        end
-        dinoTrack = hum:LoadAnimation(dinoAnim)
-        dinoTrack:Play()
-    else
-        if dinoTrack then dinoTrack:Stop() end
-    end
-end)
-
-CreateToggle(PageUltimate, "TglPunch", function(val)
-    State.PunchAnim = val
-    local char = LocalPlayer.Character
-    local hum = char and char:FindFirstChild("Humanoid")
-    if val and hum then
-        punchTrack = hum:LoadAnimation(punchAnim)
-        punchTrack:Play()
-    else
-        if punchTrack then punchTrack:Stop() end
-    end
-end)
-
-CreateToggle(PageUltimate, "TglSuperFling", function(val)
-    State.SuperFling = val
-end)
-
-CreateToggle(PageUltimate, "TglFlingV2", function(val)
-    State.FlingV2 = val
-end)
-
-CreateInput(PageUltimate, "SetFlingPower", function(txt)
-    local num = tonumber(txt)
-    if num then
-        State.FlingPower = num
-    else
-        State.FlingPower = 50
-    end
-end)
-
 local StatsHUD = Instance.new("Frame")
 StatsHUD.Size = UDim2.new(0, 140, 0, 90)
 StatsHUD.Position = UDim2.new(1, -150, 0, 20)
@@ -6468,27 +6411,6 @@ RunService.Stepped:Connect(function()
                 end
             end
         end
-    end
-end)
-
-RunService.Heartbeat:Connect(function()
-    if State.FlingV2 and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-        local hrp = LocalPlayer.Character.HumanoidRootPart
-        hrp.Velocity = Vector3.new(0, 0, 0)
-        hrp.RotVelocity = Vector3.new(0, State.FlingPower * 100, 0)
-    end
-end)
-
-RunService.Stepped:Connect(function()
-    if State.SuperFling and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-        local hrp = LocalPlayer.Character.HumanoidRootPart
-        hrp.RotVelocity = Vector3.new(50000, 50000, 50000)
-    end
-end)
-
-RunService.RenderStepped:Connect(function()
-    if (State.SuperFling or State.FlingV2) and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-        LocalPlayer.Character.HumanoidRootPart.RotVelocity = Vector3.new(0, 0, 0)
     end
 end)
 
