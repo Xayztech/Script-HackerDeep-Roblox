@@ -2,14 +2,18 @@ local TweenService = game:GetService("TweenService")
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
-local CoreGui = game:GetService("CoreGui")
-local VirtualInputManager = game:GetService("VirtualInputManager")
 local Lighting = game:GetService("Lighting")
 local Stats = game:GetService("Stats")
 local Workspace = game:GetService("Workspace")
 
+local CoreGui
+pcall(function() CoreGui = game:GetService("CoreGui") end)
+
+local VirtualInputManager
+pcall(function() VirtualInputManager = game:GetService("VirtualInputManager") end)
+
 local LocalPlayer = Players.LocalPlayer
-local Camera = Workspace.CurrentCamera
+local Camera = Workspace.CurrentCamera or Workspace:FindFirstChild("Camera")
 
 local AudioLibrary = {
     {
@@ -4025,6 +4029,16 @@ local LocalizedElements = {
 
 }
 
+for lang, data in pairs(Translations) do
+    data["ToggleESP"] = "ESP (Wallhack & Info)"
+    data["ToggleAimbot"] = "Aimbot (Auto Lock)"
+    data["ToggleFOV"] = "Show FOV (Circle)"
+    data["SetFOV"] = "Set FOV Size (Number)"
+    data["SwitchAimPart"] = "Change Aim Target (Head/Torso)"
+    data["SetCameraPOV"] = "Set Camera POV (1 - 120)"
+    data["ToggleFling"] = "Super Touch Fling"
+end
+
 local function RegisterLang(instance, key, isPlaceholder)
     local item = {
         Element = instance,
@@ -4059,18 +4073,20 @@ end
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "XayzExV3"
 
-local successGui, errGui = pcall(function()
-    ScreenGui.Parent = CoreGui
-end)
-
-if successGui then
-
-else
-    ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+local successGui = false
+if CoreGui then
+    successGui, _ = pcall(function()
+        local targetGui = (gethui and gethui()) or CoreGui
+        ScreenGui.Parent = targetGui
+    end)
 end
 
-ScreenGui.ResetOnSpawn = false
-ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+if not successGui then
+    local playerGui = LocalPlayer:WaitForChild("PlayerGui", 5)
+    if playerGui then
+        ScreenGui.Parent = playerGui
+    end
+end
 
 local function MakeDraggable(frame)
     local dragging
