@@ -1244,14 +1244,6 @@ local DefaultLighting = {
 }
 
 local State = {
-    ESP = false,
-    Aimbot = false,
-    ShowFOV = false,
-    AimFOV = 150,
-    AimSmoothness = 0.2,
-    AimPart = "Head",
-    POV = 70,
-    SuperFling = false,
     Fly = false,
     FlySpeed = 1,
     Noclip = false,
@@ -1333,7 +1325,7 @@ local Translations = {
         TabUlt = "ULTIMATE",
         TabMusic = "MUSIC",
         Fly = "Mobile Fly",
-        FlySpeed = "Fly Speed",
+        FlySpeed = "Fly Speed (Def: 50)",
         InfJump = "Infinity Jump",
         DoubleJump = "Double Jump",
         Wallhop = "Wallhop",
@@ -1420,7 +1412,7 @@ local Translations = {
         TabUlt = "ULTIMATE",
         TabMusic = "MUSIC",
         Fly = "Mobile Fly",
-        FlySpeed = "Fly Speed",
+        FlySpeed = "Fly Speed (Def: 50)",
         InfJump = "Infinity Jump",
         DoubleJump = "Double Jump",
         Wallhop = "Wallhop",
@@ -1507,7 +1499,7 @@ local Translations = {
         TabUlt = "ULTIMAT",
         TabMusic = "MUSIK",
         Fly = "Terbang Mode HP",
-        FlySpeed = "Kecepatan Terbang",
+        FlySpeed = "Kecepatan Terbang (Awal: 50)",
         InfJump = "Lompat Tak Terbatas",
         DoubleJump = "Lompat Ganda",
         Wallhop = "Lompat Dinding",
@@ -4025,16 +4017,6 @@ local LocalizedElements = {
 
 }
 
-for lang, data in pairs(Translations) do
-    data["ToggleESP"] = "ESP (Wallhack & Info)"
-    data["ToggleAimbot"] = "Aimbot (Auto Lock)"
-    data["ToggleFOV"] = "Show FOV (Circle)"
-    data["SetFOV"] = "Set FOV Size (Number)"
-    data["SwitchAimPart"] = "Change Aim Target (Head/Torso)"
-    data["SetCameraPOV"] = "Set Camera POV (1 - 120)"
-    data["ToggleFling"] = "Super Touch Fling"
-end
-
 local function RegisterLang(instance, key, isPlaceholder)
     local item = {
         Element = instance,
@@ -4068,24 +4050,19 @@ end
 
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "XayzExV3"
-ScreenGui.ResetOnSpawn = false
-ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
 local successGui, errGui = pcall(function()
-    if gethui then
-        ScreenGui.Parent = gethui()
-    elseif syn and syn.protect_gui then
-        syn.protect_gui(ScreenGui)
-        ScreenGui.Parent = CoreGui
-    else
-        ScreenGui.Parent = CoreGui
-    end
+    ScreenGui.Parent = CoreGui
 end)
 
-if not successGui then
-    local PlayerGui = LocalPlayer:FindFirstChild("PlayerGui") or LocalPlayer:WaitForChild("PlayerGui")
-    ScreenGui.Parent = PlayerGui
+if successGui then
+
+else
+    ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 end
+
+ScreenGui.ResetOnSpawn = false
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
 local function MakeDraggable(frame)
     local dragging
@@ -4923,34 +4900,6 @@ CreateToggle(PageMain, "Tornado", function(val)
     State.Tornado = val
 end)
 
-CreateToggle(PageMain, "ToggleAimbot", function(val)
-    State.Aimbot = val
-end)
-
-CreateToggle(PageMain, "ToggleFOV", function(val)
-    State.ShowFOV = val
-end)
-
-CreateInput(PageMain, "SetFOV", function(txt)
-    local num = tonumber(txt)
-    if num then
-        State.AimFOV = num
-    else
-        State.AimFOV = 150
-    end
-end)
-
-local ColAimPart = Color3.fromRGB(200, 100, 0)
-CreateButton(PageMain, "SwitchAimPart", function()
-    if State.AimPart == "Head" then
-        State.AimPart = "HumanoidRootPart"
-        ShowNotification("Aimbot Target", "Target changed to: BODY (Torso)")
-    else
-        State.AimPart = "Head"
-        ShowNotification("Aimbot Target", "Target changed to: HEAD")
-    end
-end, ColAimPart)
-
 local ACMenu = Instance.new("Frame")
 ACMenu.Parent = ScreenGui
 local ACSize = UDim2.new(0, 130, 0, 180)
@@ -5473,21 +5422,6 @@ CreateToggle(PageVisual, "Booster", function(val)
     end
 end)
 
-CreateToggle(PageVisual, "ToggleESP", function(val)
-    State.ESP = val
-end)
-
-CreateInput(PageVisual, "SetCameraPOV", function(txt)
-    local num = tonumber(txt)
-    if num then
-        if num > 120 then num = 120 end
-        if num < 1 then num = 1 end
-        State.POV = num
-    else
-        State.POV = 70
-    end
-end)
-
 CreateToggle(PageVisual, "Roshade", function(val)
     if val then
         local Bloom = Instance.new("BloomEffect", Lighting)
@@ -5937,10 +5871,6 @@ end, ColPurp)
 
 CreateToggle(PageUltimate, "AntiFlingBtn", function(val)
     State.AntiFling = val
-end)
-
-CreateToggle(PageUltimate, "ToggleFling", function(val)
-    State.SuperFling = val
 end)
 
 local ColOrng = Color3.fromRGB(255, 150, 0)
@@ -6480,209 +6410,6 @@ RunService.Stepped:Connect(function()
                     part.RotVelocity = Vector3.new(0, 0, 0)
                 end
             end
-        end
-    end
-end)
-
-local ESP_Data = {}
-local HasDrawing = pcall(function() return Drawing.new("Line") end)
-
-local FOVCircle = nil
-if HasDrawing then
-    FOVCircle = Drawing.new("Circle")
-    FOVCircle.Color = Color3.fromRGB(255, 255, 255)
-    FOVCircle.Thickness = 1.5
-    FOVCircle.Filled = false
-    FOVCircle.Transparency = 1
-end
-
-local function CreateESP(player)
-    local esp = {}
-    esp.Highlight = Instance.new("Highlight")
-    esp.Highlight.FillColor = Color3.fromRGB(255, 50, 50)
-    esp.Highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
-    esp.Highlight.FillTransparency = 0.5
-    esp.Highlight.OutlineTransparency = 0
-    esp.Highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
-    
-    if HasDrawing then
-        esp.Tracer = Drawing.new("Line")
-        esp.Tracer.Thickness = 1.5
-        esp.Tracer.Color = Color3.fromRGB(255, 255, 255)
-        
-        esp.Box = Drawing.new("Square")
-        esp.Box.Thickness = 1.5
-        esp.Box.Color = Color3.fromRGB(255, 50, 50)
-        esp.Box.Filled = false
-        
-        esp.HealthBg = Drawing.new("Line")
-        esp.HealthBg.Thickness = 3
-        esp.HealthBg.Color = Color3.fromRGB(0, 0, 0)
-        
-        esp.HealthFill = Drawing.new("Line")
-        esp.HealthFill.Thickness = 1.5
-        esp.HealthFill.Color = Color3.fromRGB(0, 255, 100)
-        
-        esp.Text = Drawing.new("Text")
-        esp.Text.Size = 14
-        esp.Text.Color = Color3.fromRGB(255, 255, 255)
-        esp.Text.Center = true
-        esp.Text.Outline = true
-    end
-    ESP_Data[player] = esp
-end
-
-local function RemoveESP(player)
-    if ESP_Data[player] then
-        if ESP_Data[player].Highlight then ESP_Data[player].Highlight:Destroy() end
-        if ESP_Data[player].Tracer then ESP_Data[player].Tracer:Remove() end
-        if ESP_Data[player].Box then ESP_Data[player].Box:Remove() end
-        if ESP_Data[player].HealthBg then ESP_Data[player].HealthBg:Remove() end
-        if ESP_Data[player].HealthFill then ESP_Data[player].HealthFill:Remove() end
-        if ESP_Data[player].Text then ESP_Data[player].Text:Remove() end
-        ESP_Data[player] = nil
-    end
-end
-
-Players.PlayerRemoving:Connect(RemoveESP)
-
-local function GetClosestPlayer()
-    local closestPlayer = nil
-    local shortestDistance = State.AimFOV
-    local centerScreen = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
-
-    for _, player in pairs(Players:GetPlayers()) do
-        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("Humanoid") and player.Character.Humanoid.Health > 0 and player.Character:FindFirstChild(State.AimPart) then
-            local targetPart = player.Character[State.AimPart]
-            local vector, onScreen = Camera:WorldToViewportPoint(targetPart.Position)
-            if onScreen then
-                local distance = (Vector2.new(vector.X, vector.Y) - centerScreen).Magnitude
-                if distance < shortestDistance then
-                    closestPlayer = player
-                    shortestDistance = distance
-                end
-            end
-        end
-    end
-    return closestPlayer
-end
-
-RunService.RenderStepped:Connect(function()
-    if Camera and Camera.FieldOfView ~= State.POV then
-        Camera.FieldOfView = State.POV
-    end
-
-    local centerScreen = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
-    if FOVCircle then
-        if State.ShowFOV and State.Aimbot then
-            FOVCircle.Position = centerScreen
-            FOVCircle.Radius = State.AimFOV
-            FOVCircle.Visible = true
-        else
-            FOVCircle.Visible = false
-        end
-    end
-
-    if State.Aimbot then
-        local target = GetClosestPlayer()
-        if target and target.Character and target.Character:FindFirstChild(State.AimPart) then
-            local targetPos = target.Character[State.AimPart].Position
-            Camera.CFrame = Camera.CFrame:Lerp(CFrame.new(Camera.CFrame.Position, targetPos), State.AimSmoothness)
-        end
-    end
-
-    if State.ESP then
-        for _, player in pairs(Players:GetPlayers()) do
-            if player ~= LocalPlayer then
-                local char = player.Character
-                local root = char and char:FindFirstChild("HumanoidRootPart")
-                local head = char and char:FindFirstChild("Head")
-                local hum = char and char:FindFirstChild("Humanoid")
-                
-                if char and root and head and hum and hum.Health > 0 then
-                    if not ESP_Data[player] then CreateESP(player) end
-                    local esp = ESP_Data[player]
-                    
-                    if esp.Highlight.Parent ~= char then 
-                        esp.Highlight.Parent = char 
-                    end
-                    
-                    if HasDrawing then
-                        local rootPos, onScreen = Camera:WorldToViewportPoint(root.Position)
-                        local headPos = Camera:WorldToViewportPoint(head.Position + Vector3.new(0, 0.5, 0))
-                        local legPos = Camera:WorldToViewportPoint(root.Position - Vector3.new(0, 3, 0))
-                        
-                        if onScreen then
-                            local boxHeight = math.abs(headPos.Y - legPos.Y)
-                            local boxWidth = boxHeight / 2
-                            
-                            esp.Box.Size = Vector2.new(boxWidth, boxHeight)
-                            esp.Box.Position = Vector2.new(rootPos.X - boxWidth / 2, headPos.Y)
-                            esp.Box.Visible = true
-                            
-                            esp.Tracer.From = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y)
-                            esp.Tracer.To = Vector2.new(rootPos.X, legPos.Y)
-                            esp.Tracer.Visible = true
-                            
-                            local healthPct = hum.Health / hum.MaxHealth
-                            local healthHeight = boxHeight * healthPct
-                            
-                            esp.HealthBg.From = Vector2.new(esp.Box.Position.X - 5, legPos.Y)
-                            esp.HealthBg.To = Vector2.new(esp.Box.Position.X - 5, headPos.Y)
-                            esp.HealthBg.Visible = true
-                            
-                            esp.HealthFill.From = Vector2.new(esp.Box.Position.X - 5, legPos.Y)
-                            esp.HealthFill.To = Vector2.new(esp.Box.Position.X - 5, legPos.Y - healthHeight)
-                            esp.HealthFill.Color = Color3.fromRGB(255 - (healthPct * 255), healthPct * 255, 0)
-                            esp.HealthFill.Visible = true
-                            
-                            local distance = math.floor((Camera.CFrame.Position - root.Position).Magnitude)
-                            esp.Text.Text = player.DisplayName .. " [" .. distance .. "m]"
-                            esp.Text.Position = Vector2.new(rootPos.X, headPos.Y - 20)
-                            esp.Text.Visible = true
-                        else
-                            esp.Box.Visible = false
-                            esp.Tracer.Visible = false
-                            esp.HealthBg.Visible = false
-                            esp.HealthFill.Visible = false
-                            esp.Text.Visible = false
-                        end
-                    end
-                else
-                    if ESP_Data[player] then
-                        if ESP_Data[player].Highlight then ESP_Data[player].Highlight.Parent = nil end
-                        if HasDrawing then
-                            ESP_Data[player].Box.Visible = false
-                            ESP_Data[player].Tracer.Visible = false
-                            ESP_Data[player].HealthBg.Visible = false
-                            ESP_Data[player].HealthFill.Visible = false
-                            ESP_Data[player].Text.Visible = false
-                        end
-                    end
-                end
-            end
-        end
-    else
-        for player, _ in pairs(ESP_Data) do
-            RemoveESP(player)
-        end
-    end
-end)
-
-RunService.Stepped:Connect(function()
-    if State.SuperFling and LocalPlayer.Character then
-        local root = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-        if root then
-            root.RotVelocity = Vector3.new(50000, 50000, 50000)
-        end
-    end
-end)
-
-RunService.RenderStepped:Connect(function()
-    if State.SuperFling and LocalPlayer.Character then
-        local root = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-        if root then
-            root.RotVelocity = Vector3.new(0, 0, 0)
         end
     end
 end)
