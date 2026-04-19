@@ -4017,6 +4017,14 @@ local LocalizedElements = {
 
 }
 
+for lang, data in pairs(Translations) do
+    data["TglSuperFling"] = "Super Fling"
+    data["TglFlingV2"] = "Fling V2"
+    data["SetFlingPower"] = "Set Fling Power"
+    data["TglDino"] = "Dino Animation"
+    data["TglPunch"] = "Punch Animation"
+end
+
 local function RegisterLang(instance, key, isPlaceholder)
     local item = {
         Element = instance,
@@ -5873,10 +5881,6 @@ CreateToggle(PageUltimate, "AntiFlingBtn", function(val)
     State.AntiFling = val
 end)
 
-CreateToggle(PageUltimate, "ToggleFling", function(val)
-    State.SuperFling = val
-end)
-
 local ColOrng = Color3.fromRGB(255, 150, 0)
 CreateButton(PageUltimate, "NDSBtn", function()
     ShowNotification(GetString("DisasterT"), GetString("DisasterD"))
@@ -5923,6 +5927,58 @@ CreateButton(PageUltimate, "EmoteBtn", function()
         ShowNotification(GetString("NotifErr"), GetString("AnimFail"))
     end
 end, ColGrn)
+
+local dinoAnim = Instance.new("Animation")
+local punchAnim = Instance.new("Animation")
+punchAnim.AnimationId = "rbxassetid://84674780"
+local dinoTrack = nil
+local punchTrack = nil
+
+CreateToggle(PageUltimate, "TglDino", function(val)
+    State.DinoAnim = val
+    local char = LocalPlayer.Character
+    local hum = char and char:FindFirstChild("Humanoid")
+    if val and hum then
+        if hum.RigType == Enum.HumanoidRigType.R15 then
+            dinoAnim.AnimationId = "rbxassetid://204062532"
+        else
+            dinoAnim.AnimationId = "rbxassetid://20432871"
+        end
+        dinoTrack = hum:LoadAnimation(dinoAnim)
+        dinoTrack:Play()
+    else
+        if dinoTrack then dinoTrack:Stop() end
+    end
+end)
+
+CreateToggle(PageUltimate, "TglPunch", function(val)
+    State.PunchAnim = val
+    local char = LocalPlayer.Character
+    local hum = char and char:FindFirstChild("Humanoid")
+    if val and hum then
+        punchTrack = hum:LoadAnimation(punchAnim)
+        punchTrack:Play()
+    else
+        if punchTrack then punchTrack:Stop() end
+    end
+end)
+
+CreateToggle(PageUltimate, "TglSuperFling", function(val)
+    State.SuperFling = val
+end)
+
+CreateToggle(PageUltimate, "TglFlingV2", function(val)
+    State.FlingV2 = val
+end)
+
+CreateInput(PageUltimate, "SetFlingPower", function(txt)
+    local num = tonumber(txt)
+    if num then
+        State.FlingPower = num
+    else
+        State.FlingPower = 50
+    end
+end)
 
 local StatsHUD = Instance.new("Frame")
 StatsHUD.Size = UDim2.new(0, 140, 0, 90)
@@ -6287,10 +6343,6 @@ AudioPlayer.Ended:Connect(function()
 end)
 
 RunService.RenderStepped:Connect(function(deltaTime)
-    if State.SuperFling and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-        LocalPlayer.Character.HumanoidRootPart.RotVelocity = Vector3.new(0, 0, 0)
-    end
-    
     if AudioPlayer.IsLoaded and AudioPlayer.TimeLength > 0 then
         local progress = AudioPlayer.TimePosition / AudioPlayer.TimeLength
         local newSize = UDim2.new(progress, 0, 1, 0)
@@ -6388,10 +6440,6 @@ RunService.Heartbeat:Connect(function()
 end)
 
 RunService.Stepped:Connect(function()
-    if State.SuperFling and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-        LocalPlayer.Character.HumanoidRootPart.RotVelocity = Vector3.new(50000, 50000, 50000)
-    end
-    
     if State.AntiFling and LocalPlayer.Character then
         local rootPart = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
         if not rootPart then return end
@@ -6427,3 +6475,24 @@ RunService.Stepped:Connect(function()
 end)
 
 UpdateAllLanguage()
+
+RunService.Heartbeat:Connect(function()
+    if State.FlingV2 and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        local hrp = LocalPlayer.Character.HumanoidRootPart
+        hrp.Velocity = Vector3.new(0, 0, 0)
+        hrp.RotVelocity = Vector3.new(0, State.FlingPower * 100, 0)
+    end
+end)
+
+RunService.Stepped:Connect(function()
+    if State.SuperFling and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        local hrp = LocalPlayer.Character.HumanoidRootPart
+        hrp.RotVelocity = Vector3.new(50000, 50000, 50000)
+    end
+end)
+
+RunService.RenderStepped:Connect(function()
+    if (State.SuperFling or State.FlingV2) and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        LocalPlayer.Character.HumanoidRootPart.RotVelocity = Vector3.new(0, 0, 0)
+    end
+end)
