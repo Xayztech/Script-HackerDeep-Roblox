@@ -1359,6 +1359,11 @@ local Translations = {
         CloneBtn = "CLONE AVATAR",
         HeadlessBtn = "ENABLE HEADLESS",
         AntiFlingBtn = "Anti Fling (No Collision)",
+        TglSuperFling = "Super Fling",
+        TglFlingV2 = "Fling V2",
+        SetFlingPower = "Set Fling Power",
+        TglDino = "Dino Animation",
+        TglPunch = "Punch Animation",
         NDSBtn = "TEST DISASTER POP-UP",
         EmoteHolder = "Enter Animation ID...",
         EmoteBtn = "PLAY ANIMATION",
@@ -4017,14 +4022,6 @@ local LocalizedElements = {
 
 }
 
-for lang, data in pairs(Translations) do
-    data["TglSuperFling"] = "Super Fling"
-    data["TglFlingV2"] = "Fling V2"
-    data["SetFlingPower"] = "Set Fling Power"
-    data["TglDino"] = "Dino Animation"
-    data["TglPunch"] = "Punch Animation"
-end
-
 local function RegisterLang(instance, key, isPlaceholder)
     local item = {
         Element = instance,
@@ -6474,8 +6471,6 @@ RunService.Stepped:Connect(function()
     end
 end)
 
-UpdateAllLanguage()
-
 RunService.Heartbeat:Connect(function()
     if State.FlingV2 and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
         local hrp = LocalPlayer.Character.HumanoidRootPart
@@ -6496,3 +6491,5 @@ RunService.RenderStepped:Connect(function()
         LocalPlayer.Character.HumanoidRootPart.RotVelocity = Vector3.new(0, 0, 0)
     end
 end)
+
+UpdateAllLanguage()
