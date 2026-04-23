@@ -17,23 +17,33 @@ local State = {
     FlySpeed = 1,
     
     Aimbot = false,
+    SilentAim = false,
     Aim_ShowFOV = false,
     Aim_FOVSize = 150,
     Aim_Part = "Head",
     
     ESP = false,
-    ESP_Box = true,
-    ESP_Tracer = true,
-    ESP_Health = true,
-    ESP_Name = true,
-    ESP_Chams = true,
+    ESP_Box = false,
+    ESP_Tracer = false,
+    ESP_Health = false,
+    ESP_Name = false,
+    ESP_Chams = false,
     
     POV = 70,
     FlingV2 = false,
-    FlingPower = 50,
+    FlingPower = 50, 
     SuperFling = false,
+    ForceField = false,
+    
     DinoAnim = false,
-    PunchAnim = false
+    PunchAnim = false,
+    
+    SuperRing = false,
+    RingSpeed = 20,
+    RingHeight = 0,
+    RingDistance = 50,
+    Blackhole = false,
+    BlackholeDistance = 30
 }
 
 local ScreenGui = Instance.new("ScreenGui")
@@ -109,7 +119,6 @@ local Header = Instance.new("Frame")
 Header.Parent = MainFrame
 Header.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
 Header.Size = UDim2.new(1, 0, 0, 40)
-
 local HeaderCorner = Instance.new("UICorner")
 HeaderCorner.CornerRadius = UDim.new(0, 10)
 HeaderCorner.Parent = Header
@@ -177,17 +186,13 @@ ContentArea.Position = UDim2.new(0, 140, 0, 50)
 ContentArea.Size = UDim2.new(1, -150, 1, -60)
 
 MinimizeBtn.MouseButton1Click:Connect(function()
-    local tInfo = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-    local tGoal = {Size = UDim2.new(0, 480, 0, 40)}
-    TweenService:Create(MainFrame, tInfo, tGoal):Play()
+    TweenService:Create(MainFrame, TweenInfo.new(0.3), {Size = UDim2.new(0, 480, 0, 40)}):Play()
     Sidebar.Visible = false
     ContentArea.Visible = false
 end)
 
 MaximizeBtn.MouseButton1Click:Connect(function()
-    local tInfo = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-    local tGoal = {Size = UDim2.new(0, 480, 0, 360)}
-    TweenService:Create(MainFrame, tInfo, tGoal):Play()
+    TweenService:Create(MainFrame, TweenInfo.new(0.3), {Size = UDim2.new(0, 480, 0, 360)}):Play()
     task.wait(0.3)
     Sidebar.Visible = true
     ContentArea.Visible = true
@@ -198,7 +203,6 @@ CloseBtn.MouseButton1Click:Connect(function()
 end)
 
 local Pages = {}
-
 local function SwitchPage(pageName)
     for name, page in pairs(Pages) do
         if name == pageName then
@@ -247,19 +251,20 @@ local function CreatePage(name)
     UIList.Parent = Page
     UIList.Padding = UDim.new(0, 8)
     UIList.SortOrder = Enum.SortOrder.LayoutOrder
-
     return Page
 end
 
 local PageCombat = CreatePage("Combat")
 local PageVisual = CreatePage("Visual")
 local PageFlings = CreatePage("Flings")
+local PageWorld = CreatePage("World")
 
 SwitchPage("Combat")
 local Tab1 = CreateTabBtn("⚔️ COMBAT", "Combat", 10)
 Tab1.TextColor3 = Color3.fromRGB(255, 255, 255)
 CreateTabBtn("👁️ VISUAL", "Visual", 50)
-CreateTabBtn("🌪️ ULTIMATE", "Flings", 90)
+CreateTabBtn("🌪️ FLINGS", "Flings", 90)
+CreateTabBtn("🌍 WORLD", "World", 130)
 
 local function CreateDropdown(page, text)
     local Container = Instance.new("Frame")
@@ -316,9 +321,7 @@ local function CreateDropdown(page, text)
         isOpen = not isOpen
         updateSize()
     end)
-
     UIList:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(updateSize)
-
     return ItemsFrame
 end
 
@@ -392,9 +395,7 @@ local function CreateToggle(page, text, stateKey, parentStateKey)
     updateUI()
 
     Button.MouseButton1Click:Connect(function()
-        if parentStateKey and not State[parentStateKey] then
-            return 
-        end
+        if parentStateKey and not State[parentStateKey] then return end
         State[stateKey] = not State[stateKey]
         
         local tInfo = TweenInfo.new(0.2)
@@ -435,9 +436,7 @@ local function CreateButton(page, text, color, callback, parentStateKey)
     end)
 
     Btn.MouseButton1Click:Connect(function()
-        if parentStateKey and not State[parentStateKey] then
-            return
-        end
+        if parentStateKey and not State[parentStateKey] then return end
         callback(Btn)
     end)
     return Btn
@@ -468,9 +467,7 @@ local function CreateInput(page, text, stateKey, parentStateKey)
     end)
 
     Box.FocusLost:Connect(function()
-        if parentStateKey and not State[parentStateKey] then
-            return
-        end
+        if parentStateKey and not State[parentStateKey] then return end
         local num = tonumber(Box.Text)
         if num then
             State[stateKey] = num
@@ -549,18 +546,14 @@ local function CreateStepper(page, text, stateKey, parentStateKey)
     end)
 
     local function update(newVal)
-        if parentStateKey and not State[parentStateKey] then
-            return
-        end
+        if parentStateKey and not State[parentStateKey] then return end
         State[stateKey] = newVal
         ValueBox.Text = tostring(State[stateKey])
     end
     
     MinusBtn.MouseButton1Click:Connect(function() 
         if parentStateKey and not State[parentStateKey] then return end
-        if State[stateKey] > 1 then 
-            update(State[stateKey] - 1) 
-        end 
+        if State[stateKey] > 1 then update(State[stateKey] - 1) end 
     end)
     
     PlusBtn.MouseButton1Click:Connect(function() 
@@ -583,10 +576,11 @@ local function CreateStepper(page, text, stateKey, parentStateKey)
     return Frame
 end
 
-CreateToggle(PageCombat, "Aimbot", "Aimbot", nil)
-local DropAim = CreateDropdown(PageCombat, "Advanced Menu")
+CreateToggle(PageCombat, "Aimbot (Auto Lock)", "Aimbot", nil)
+local DropAim = CreateDropdown(PageCombat, "Advanced Aimbot")
 CreateToggle(DropAim, "Show FOV Circle", "Aim_ShowFOV", "Aimbot")
-CreateInput(DropAim, "Set FOV Size", "Aim_FOVSize", "Aimbot")
+CreateToggle(DropAim, "Silent Aim (Hitbox)", "SilentAim", "Aimbot")
+CreateStepper(DropAim, "Set FOV Size", "Aim_FOVSize", "Aimbot")
 CreateButton(DropAim, "Switch Target: HEAD/TORSO", Color3.fromRGB(200, 100, 0), function(btn)
     if State.Aim_Part == "Head" then
         State.Aim_Part = "HumanoidRootPart"
@@ -596,25 +590,62 @@ CreateButton(DropAim, "Switch Target: HEAD/TORSO", Color3.fromRGB(200, 100, 0), 
     btn.Text = "Target: " .. string.upper(State.Aim_Part)
 end, "Aimbot")
 
-CreateToggle(PageCombat, "Fly", "Fly", nil)
+CreateToggle(PageCombat, "ForceField V2 (God Mode)", "ForceField", nil)
+CreateToggle(PageCombat, "Nexus Fly", "Fly", nil)
 CreateStepper(PageCombat, "Set Fly Speed", "FlySpeed", "Fly")
 
-CreateToggle(PageVisual, "Ultimate ESP", "ESP", nil)
-local DropESP = CreateDropdown(PageVisual, "Advanced ESP Menu")
+CreateToggle(PageVisual, "Ultimate ESP (Wallhack)", "ESP", nil)
+local DropESP = CreateDropdown(PageVisual, "Advanced ESP")
 CreateToggle(DropESP, "Show Box", "ESP_Box", "ESP")
 CreateToggle(DropESP, "Show Name & Distance", "ESP_Name", "ESP")
 CreateToggle(DropESP, "Show Healthbar", "ESP_Health", "ESP")
 CreateToggle(DropESP, "Show Tracer", "ESP_Tracer", "ESP")
 CreateToggle(DropESP, "Show Chams", "ESP_Chams", "ESP")
 
-CreateInput(PageVisual, "Set POV Camera", "POV", nil)
+CreateInput(PageVisual, "Set POV Camera (1-120)", "POV", nil)
 
 CreateToggle(PageFlings, "Fling V2", "FlingV2", nil)
 CreateInput(PageFlings, "Set Fling Power", "FlingPower", "FlingV2")
 CreateToggle(PageFlings, "Super Touch Fling", "SuperFling", nil)
 
+CreateButton(PageFlings, "Teleport to ALL Players", Color3.fromRGB(0, 150, 255), function()
+    for _, p in ipairs(Players:GetPlayers()) do
+        if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            LocalPlayer.Character.HumanoidRootPart.CFrame = p.Character.HumanoidRootPart.CFrame
+            task.wait(0.2)
+        end
+    end
+end, nil)
+
+CreateButton(PageFlings, "Fling ALL Players", Color3.fromRGB(255, 50, 50), function()
+    local oldFling = State.SuperFling
+    State.SuperFling = true
+    for _, p in ipairs(Players:GetPlayers()) do
+        if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            LocalPlayer.Character.HumanoidRootPart.CFrame = p.Character.HumanoidRootPart.CFrame
+            task.wait(0.3)
+        end
+    end
+    State.SuperFling = oldFling
+end, nil)
+
+CreateButton(PageFlings, "Dropkick", Color3.fromRGB(150, 0, 255), function()
+    pcall(function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/platinww/CrustyMain/refs/heads/main/universal/DropKick.lua"))()
+    end)
+end, nil)
+
 CreateToggle(PageFlings, "Dino Animation", "DinoAnim", nil)
 CreateToggle(PageFlings, "Punch Animation", "PunchAnim", nil)
+
+CreateToggle(PageWorld, "Super Rings", "SuperRing", nil)
+local DropRing = CreateDropdown(PageWorld, "Advanced Rings")
+CreateStepper(DropRing, "Ring Speed", "RingSpeed", "SuperRing")
+CreateStepper(DropRing, "Ring Height", "RingHeight", "SuperRing")
+CreateStepper(DropRing, "Ring Distance", "RingDistance", "SuperRing")
+
+CreateToggle(PageWorld, "Blackhole", "Blackhole", nil)
+CreateStepper(PageWorld, "Blackhole Distance", "BlackholeDistance", "Blackhole")
 
 local FlyLoop = nil
 local FlyBV = nil
@@ -730,6 +761,65 @@ if HasDrawing then
     FOVCircle.Transparency = 1
 end
 
+local function GetClosestPlayer()
+    local target = nil
+    local shortDist = State.Aim_FOVSize
+    local centerScreen = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
+    
+    for _, p in pairs(Players:GetPlayers()) do
+        local isValidTarget = false
+        if p ~= LocalPlayer and p.Character then
+            local pHum = p.Character:FindFirstChild("Humanoid")
+            local pPart = p.Character:FindFirstChild(State.Aim_Part)
+            if pHum and pHum.Health > 0 and pPart then
+                isValidTarget = true
+            end
+        end
+        
+        if isValidTarget then
+            local v, onS = Camera:WorldToViewportPoint(p.Character[State.Aim_Part].Position)
+            if onS then
+                local vecDist = Vector2.new(v.X, v.Y) - centerScreen
+                local d = vecDist.Magnitude
+                if d < shortDist then 
+                    target = p
+                    shortDist = d 
+                end
+            end
+        end
+    end
+    return target
+end
+
+local OldNamecall = nil
+if getnamecallmethod and hookmetamethod then
+    OldNamecall = hookmetamethod(game, "__namecall", function(self, ...)
+        local method = getnamecallmethod()
+        local args = {...}
+        
+        if State.Aimbot and State.SilentAim and not checkcaller() and (method == "FindPartOnRayWithIgnoreList" or method == "Raycast") then
+            local closest = GetClosestPlayer()
+            if closest and closest.Character and closest.Character:FindFirstChild(State.Aim_Part) then
+                local targetPos = closest.Character[State.Aim_Part].Position
+                local origin = nil
+                
+                if method == "Raycast" then
+                    origin = args[1]
+                    local direction = (targetPos - origin).Unit * 1000
+                    args[2] = direction
+                    return OldNamecall(self, unpack(args))
+                elseif method == "FindPartOnRayWithIgnoreList" then
+                    origin = args[1].Origin
+                    local direction = (targetPos - origin).Unit * 1000
+                    args[1] = Ray.new(origin, direction)
+                    return OldNamecall(self, unpack(args))
+                end
+            end
+        end
+        return OldNamecall(self, ...)
+    end)
+end
+
 local function CreateESP(player)
     local esp = {}
     esp.Highlight = Instance.new("Highlight")
@@ -801,46 +891,12 @@ RunService.RenderStepped:Connect(function()
         end
     end
     
-    if State.Aimbot then
-        local target = nil
-        local shortDist = State.Aim_FOVSize
-        
-        for _, p in pairs(Players:GetPlayers()) do
-            local isValidTarget = false
-            if p ~= LocalPlayer and p.Character then
-                local pHum = p.Character:FindFirstChild("Humanoid")
-                local pPart = p.Character:FindFirstChild(State.Aim_Part)
-                if pHum and pHum.Health > 0 and pPart then
-                    isValidTarget = true
-                end
-            end
-            
-            if isValidTarget then
-                local v, onS = Camera:WorldToViewportPoint(p.Character[State.Aim_Part].Position)
-                if onS then
-                    local vecDist = Vector2.new(v.X, v.Y) - centerScreen
-                    local d = vecDist.Magnitude
-                    if d < shortDist then 
-                        target = p
-                        shortDist = d 
-                    end
-                end
-            end
-        end
-        
+    if State.Aimbot and not State.SilentAim then
+        local target = GetClosestPlayer()
         if target then 
             local pPartPos = target.Character[State.Aim_Part].Position
             local newCF = CFrame.new(Camera.CFrame.Position, pPartPos)
             Camera.CFrame = Camera.CFrame:Lerp(newCF, 0.2) 
-        end
-    end
-
-    local isFlinging = State.SuperFling or State.FlingV2
-    local lChar = LocalPlayer.Character
-    if isFlinging and lChar then
-        local lHrp = lChar:FindFirstChild("HumanoidRootPart")
-        if lHrp then
-            lHrp.RotVelocity = Vector3.new(0, 0, 0)
         end
     end
 
@@ -944,6 +1000,35 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
+local flingBav = nil
+RunService.RenderStepped:Connect(function()
+    local char = LocalPlayer.Character
+    local hrp = char and char:FindFirstChild("HumanoidRootPart")
+    
+    if State.FlingV2 or State.SuperFling then
+        if hrp then
+            if not flingBav then
+                flingBav = Instance.new("BodyAngularVelocity")
+                flingBav.Name = "XayzFling"
+                flingBav.MaxTorque = Vector3.new(0, math.huge, 0)
+                flingBav.P = math.huge
+                flingBav.Parent = hrp
+            end
+            if State.SuperFling then
+                flingBav.AngularVelocity = Vector3.new(0, 999999, 0)
+            else
+                flingBav.AngularVelocity = Vector3.new(0, State.FlingPower * 100, 0)
+            end
+            hrp.RotVelocity = Vector3.new(0, 0, 0) 
+        end
+    else
+        if flingBav then
+            flingBav:Destroy()
+            flingBav = nil
+        end
+    end
+end)
+
 local dinoAnimR15 = Instance.new("Animation")
 dinoAnimR15.AnimationId = "rbxassetid://204062532"
 
@@ -957,43 +1042,73 @@ local dTrack = nil
 local pTrack = nil
 
 RunService.Heartbeat:Connect(function()
-    if State.FlingV2 and LocalPlayer.Character then
-        local hrp = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-        if hrp then
-            hrp.Velocity = Vector3.new(0, 0, 0)
-            hrp.RotVelocity = Vector3.new(0, State.FlingPower * 100, 0)
+    local char = LocalPlayer.Character
+    if not char then return end
+    
+    local hum = char:FindFirstChild("Humanoid")
+    if hum then
+        if State.DinoAnim and not (dTrack and dTrack.IsPlaying) then
+            if hum.RigType == Enum.HumanoidRigType.R15 then
+                dTrack = hum:LoadAnimation(dinoAnimR15)
+            else
+                dTrack = hum:LoadAnimation(dinoAnimR6)
+            end
+            dTrack:Play()
+        elseif not State.DinoAnim and dTrack and dTrack.IsPlaying then
+            dTrack:Stop()
+        end
+
+        if State.PunchAnim and not (pTrack and pTrack.IsPlaying) then
+            pTrack = hum:LoadAnimation(punchAnimation)
+            pTrack:Play()
+        elseif not State.PunchAnim and pTrack and pTrack.IsPlaying then
+            pTrack:Stop()
         end
     end
 
-    if LocalPlayer.Character then
-        local hum = LocalPlayer.Character:FindFirstChild("Humanoid")
-        if hum then
-            if State.DinoAnim and not (dTrack and dTrack.IsPlaying) then
-                if hum.RigType == Enum.HumanoidRigType.R15 then
-                    dTrack = hum:LoadAnimation(dinoAnimR15)
-                else
-                    dTrack = hum:LoadAnimation(dinoAnimR6)
-                end
-                dTrack:Play()
-            elseif not State.DinoAnim and dTrack and dTrack.IsPlaying then
-                dTrack:Stop()
-            end
+    local hrp = char:FindFirstChild("HumanoidRootPart")
+    if not hrp then return end
 
-            if State.PunchAnim and not (pTrack and pTrack.IsPlaying) then
-                pTrack = hum:LoadAnimation(punchAnimation)
-                pTrack:Play()
-            elseif not State.PunchAnim and pTrack and pTrack.IsPlaying then
-                pTrack:Stop()
+    if State.ForceField then
+        if not char:FindFirstChild("XayzFF") then
+            local ff = Instance.new("ForceField")
+            ff.Name = "XayzFF"
+            ff.Visible = true
+            ff.Parent = char
+        end
+    else
+        local ff = char:FindFirstChild("XayzFF")
+        if ff then ff:Destroy() end
+    end
+
+    if State.SuperRing or State.Blackhole then
+        local parts = {}
+        for _, v in ipairs(Workspace:GetDescendants()) do
+            if v:IsA("BasePart") and not v.Anchored and not v:IsDescendantOf(char) then
+                table.insert(parts, v)
             end
         end
-    end
-end)
 
-RunService.Stepped:Connect(function()
-    if State.SuperFling and LocalPlayer.Character then
-        local hrp = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-        if hrp then
-            hrp.RotVelocity = Vector3.new(50000, 50000, 50000)
+        local count = #parts
+        for i, part in ipairs(parts) do
+            if State.Blackhole then
+                part.CanCollide = false
+                local targetCFrame = hrp.CFrame + (hrp.CFrame.LookVector * State.BlackholeDistance)
+                part.CFrame = targetCFrame
+                part.Velocity = Vector3.new(0, 0, 0)
+            elseif State.SuperRing then
+                part.CanCollide = false
+                local angle = (i / count) * math.pi * 2
+                local timeOffset = tick() * State.RingSpeed
+                local finalAngle = angle + timeOffset
+                
+                local offsetX = math.cos(finalAngle) * State.RingDistance
+                local offsetZ = math.sin(finalAngle) * State.RingDistance
+                
+                local newPos = hrp.Position + Vector3.new(offsetX, State.RingHeight, offsetZ)
+                part.CFrame = CFrame.new(newPos)
+                part.Velocity = Vector3.new(0, 0, 0)
+            end
         end
     end
 end)
