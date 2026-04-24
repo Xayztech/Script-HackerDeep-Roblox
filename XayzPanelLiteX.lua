@@ -14,7 +14,7 @@ local LocalPlayer = Players.LocalPlayer
 local Camera = Workspace.CurrentCamera or Workspace:FindFirstChild("Camera")
 
 local State = {
-    PerformanceMode = false,
+    PerformanceMode = false, 
     
     Fly = false,
     FlySpeed = 1,
@@ -41,14 +41,20 @@ local State = {
     
     DinoAnim = false,
     PunchAnim = false,
+    ArmAnim = false,
+    ArmSpeed = 15,
+    ArmIntensity = 0.5,
+    ShowStick = false,
+    FakeKiller = false,
     
     SuperRing = false,
-    RingSpeed = 50,
+    RingSpeed = 20,
     RingHeight = 5,
-    RingDistance = 40,
-    RingAttraction = 1000,
+    RingDistance = 50,
+    RingAttraction = 2000,
     Blackhole = false,
-    BlackholeDistance = 30,
+    BlackholeRadius = 30,
+    BlackholeSpeed = 999,
     HDAdmin = false
 }
 
@@ -128,17 +134,22 @@ local function XayzNotify(title, text, duration)
     
     local NotifFrame = Instance.new("Frame")
     NotifFrame.Parent = NotifContainer
-    NotifFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+    NotifFrame.BackgroundColor3 = Color3.fromRGB(15, 17, 26)
     NotifFrame.Size = UDim2.new(1, 0, 0, 65)
     NotifFrame.BackgroundTransparency = State.PerformanceMode and 0 or 1
     
+    local NotifStroke = Instance.new("UIStroke")
+    NotifStroke.Color = Color3.fromRGB(138, 43, 226)
+    NotifStroke.Thickness = 1
+    NotifStroke.Parent = NotifFrame
+
     local NotifCorner = Instance.new("UICorner")
     NotifCorner.CornerRadius = UDim.new(0, 8)
     NotifCorner.Parent = NotifFrame
     
     local Accent = Instance.new("Frame")
     Accent.Parent = NotifFrame
-    Accent.BackgroundColor3 = Color3.fromRGB(100, 150, 255)
+    Accent.BackgroundColor3 = Color3.fromRGB(138, 43, 226)
     Accent.Size = UDim2.new(0, 4, 1, 0)
     
     local AccentCorner = Instance.new("UICorner")
@@ -172,7 +183,7 @@ local function XayzNotify(title, text, duration)
     
     local ProgBg = Instance.new("Frame")
     ProgBg.Parent = NotifFrame
-    ProgBg.BackgroundColor3 = Color3.fromRGB(35, 35, 40)
+    ProgBg.BackgroundColor3 = Color3.fromRGB(30, 32, 45)
     ProgBg.Position = UDim2.new(0, 15, 1, -5)
     ProgBg.Size = UDim2.new(1, -25, 0, 3)
     ProgBg.BackgroundTransparency = State.PerformanceMode and 0 or 1
@@ -183,7 +194,7 @@ local function XayzNotify(title, text, duration)
     
     local ProgFill = Instance.new("Frame")
     ProgFill.Parent = ProgBg
-    ProgFill.BackgroundColor3 = Color3.fromRGB(100, 150, 255)
+    ProgFill.BackgroundColor3 = Color3.fromRGB(138, 43, 226)
     ProgFill.Size = UDim2.new(1, 0, 1, 0)
     ProgFill.BackgroundTransparency = State.PerformanceMode and 0 or 1
     
@@ -221,56 +232,131 @@ local function XayzNotify(title, text, duration)
     end
 end
 
-local RGBWrapper = Instance.new("Frame")
-RGBWrapper.Parent = ScreenGui
-RGBWrapper.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-RGBWrapper.Position = UDim2.new(0.5, -241, 0.5, -161)
-RGBWrapper.Size = UDim2.new(0, 482, 0, 362)
-MakeDraggable(RGBWrapper) 
+local MainWrapper = Instance.new("Frame")
+MainWrapper.Parent = ScreenGui
+MainWrapper.BackgroundColor3 = Color3.fromRGB(12, 14, 22)
+MainWrapper.Position = UDim2.new(0.5, -250, 0.5, -175)
+MainWrapper.Size = UDim2.new(0, 500, 0, 350)
+MakeDraggable(MainWrapper)
 
-local RGBWrapperCorner = Instance.new("UICorner")
-RGBWrapperCorner.CornerRadius = UDim.new(0, 11)
-RGBWrapperCorner.Parent = RGBWrapper
+local MainWrapperCorner = Instance.new("UICorner")
+MainWrapperCorner.CornerRadius = UDim.new(0, 8)
+MainWrapperCorner.Parent = MainWrapper
 
-local UIGradient = Instance.new("UIGradient")
-UIGradient.Parent = RGBWrapper
-UIGradient.Color = ColorSequence.new{
-    ColorSequenceKeypoint.new(0.00, Color3.fromRGB(255, 0, 0)),
-    ColorSequenceKeypoint.new(0.16, Color3.fromRGB(255, 127, 0)),
-    ColorSequenceKeypoint.new(0.33, Color3.fromRGB(255, 255, 0)),
-    ColorSequenceKeypoint.new(0.50, Color3.fromRGB(0, 255, 0)),
-    ColorSequenceKeypoint.new(0.66, Color3.fromRGB(0, 0, 255)),
-    ColorSequenceKeypoint.new(0.83, Color3.fromRGB(75, 0, 130)),
-    ColorSequenceKeypoint.new(1.00, Color3.fromRGB(148, 0, 211))
+local MainStroke = Instance.new("UIStroke")
+MainStroke.Parent = MainWrapper
+MainStroke.Color = Color3.fromRGB(138, 43, 226)
+MainStroke.Thickness = 2
+
+local RGBGradient = Instance.new("UIGradient")
+RGBGradient.Parent = MainStroke
+RGBGradient.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0.00, Color3.fromRGB(138, 43, 226)),
+    ColorSequenceKeypoint.new(0.50, Color3.fromRGB(75, 100, 255)),
+    ColorSequenceKeypoint.new(1.00, Color3.fromRGB(138, 43, 226))
 }
 
 RunService.RenderStepped:Connect(function()
     if not State.PerformanceMode then
-        UIGradient.Rotation = (UIGradient.Rotation + 1) % 360
-    else
-        UIGradient.Color = ColorSequence.new{
-            ColorSequenceKeypoint.new(0.00, Color3.fromRGB(100, 150, 255)),
-            ColorSequenceKeypoint.new(1.00, Color3.fromRGB(100, 150, 255))
-        }
+        RGBGradient.Rotation = (RGBGradient.Rotation + 2) % 360
     end
 end)
 
-local MainFrame = Instance.new("Frame")
-MainFrame.Parent = RGBWrapper
-MainFrame.BackgroundColor3 = Color3.fromRGB(10, 11, 14)
-MainFrame.Position = UDim2.new(0, 1, 0, 1)
-MainFrame.Size = UDim2.new(1, -2, 1, -2)
-MainFrame.ClipsDescendants = true
+local LoadFrame = Instance.new("Frame")
+LoadFrame.Parent = MainWrapper
+LoadFrame.BackgroundColor3 = Color3.fromRGB(12, 14, 22)
+LoadFrame.Size = UDim2.new(1, 0, 1, 0)
+LoadFrame.ZIndex = 100
 
-local MainFrameCorner = Instance.new("UICorner")
-MainFrameCorner.CornerRadius = UDim.new(0, 10)
-MainFrameCorner.Parent = MainFrame
+local LoadCorner = Instance.new("UICorner")
+LoadCorner.CornerRadius = UDim.new(0, 8)
+LoadCorner.Parent = LoadFrame
+
+local AuraText = Instance.new("TextLabel")
+AuraText.Parent = LoadFrame
+AuraText.BackgroundTransparency = 1
+AuraText.Position = UDim2.new(0, 0, 0.4, -20)
+AuraText.Size = UDim2.new(1, 0, 0, 40)
+AuraText.Font = Enum.Font.GothamBlack
+AuraText.Text = "X A Y Z   L I T E  X"
+AuraText.TextColor3 = Color3.fromRGB(255, 255, 255)
+AuraText.TextSize = 28
+AuraText.ZIndex = 101
+
+local TextGradient = Instance.new("UIGradient")
+TextGradient.Parent = AuraText
+TextGradient.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0.0, Color3.fromRGB(50, 50, 50)),
+    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(138, 43, 226)),
+    ColorSequenceKeypoint.new(1.0, Color3.fromRGB(50, 50, 50))
+}
+TextGradient.Offset = Vector2.new(-1, 0)
+
+local Spinner = Instance.new("Frame")
+Spinner.Parent = LoadFrame
+Spinner.BackgroundTransparency = 1
+Spinner.Position = UDim2.new(0.5, -20, 0.6, 0)
+Spinner.Size = UDim2.new(0, 40, 0, 40)
+Spinner.ZIndex = 101
+
+local SpinnerCorner = Instance.new("UICorner")
+SpinnerCorner.CornerRadius = UDim.new(0.5, 0)
+SpinnerCorner.Parent = Spinner
+
+local SpinnerStroke = Instance.new("UIStroke")
+SpinnerStroke.Parent = Spinner
+SpinnerStroke.Thickness = 4
+SpinnerStroke.Color = Color3.fromRGB(100, 150, 255)
+SpinnerStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+
+local SpinnerGradient = Instance.new("UIGradient")
+SpinnerGradient.Parent = SpinnerStroke
+SpinnerGradient.Transparency = NumberSequence.new({
+    NumberSequenceKeypoint.new(0.0, 0.0), 
+    NumberSequenceKeypoint.new(0.5, 0.8), 
+    NumberSequenceKeypoint.new(1.0, 1.0) 
+})
+
+task.spawn(function()
+    local t = 0
+    local loading = true
+    
+    task.spawn(function()
+        while loading do
+            t = t + 0.05
+            Spinner.Rotation = Spinner.Rotation + 10
+            TextGradient.Offset = Vector2.new(math.sin(t), 0)
+            task.wait(0.03)
+        end
+    end)
+    
+    task.wait(5)
+    loading = false
+    
+    local fadeOut = TweenInfo.new(0.5)
+    TweenService:Create(AuraText, fadeOut, {TextTransparency = 1}):Play()
+    
+    TweenService:Create(SpinnerStroke, fadeOut, {Transparency = 1}):Play()
+    
+    task.wait(0.5)
+    TweenService:Create(LoadFrame, fadeOut, {BackgroundTransparency = 1}):Play()
+    task.wait(0.5)
+    LoadFrame.Visible = false
+    
+    if XayzNotify then
+        XayzNotify("System Online", "Welcome to Xayz Panel LiteX", 4)
+    end
+end)
 
 local Header = Instance.new("Frame")
-Header.Parent = MainFrame
-Header.BackgroundColor3 = Color3.fromRGB(15, 16, 20)
+Header.Parent = MainWrapper
+Header.BackgroundColor3 = Color3.fromRGB(18, 20, 30)
 Header.Size = UDim2.new(1, 0, 0, 40)
 Header.BorderSizePixel = 0
+
+local HeaderCorner = Instance.new("UICorner")
+HeaderCorner.CornerRadius = UDim.new(0, 8)
+HeaderCorner.Parent = Header
 
 local TitleLabel = Instance.new("TextLabel")
 TitleLabel.Parent = Header
@@ -278,69 +364,70 @@ TitleLabel.BackgroundTransparency = 1
 TitleLabel.Position = UDim2.new(0, 15, 0, 0)
 TitleLabel.Size = UDim2.new(0.6, 0, 1, 0)
 TitleLabel.Font = Enum.Font.GothamBold
-TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+TitleLabel.TextColor3 = Color3.fromRGB(200, 220, 255)
 TitleLabel.TextSize = 14
 TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
 TitleLabel.Text = "🖥️ Xayz Panel LiteX"
 
 local MinimizeBtn = Instance.new("TextButton")
 MinimizeBtn.Parent = Header
-MinimizeBtn.BackgroundColor3 = Color3.fromRGB(30, 31, 36)
+MinimizeBtn.BackgroundColor3 = Color3.fromRGB(35, 40, 55)
 MinimizeBtn.Position = UDim2.new(1, -95, 0.5, -12)
 MinimizeBtn.Size = UDim2.new(0, 24, 0, 24)
 MinimizeBtn.Font = Enum.Font.GothamBold
 MinimizeBtn.Text = "-"
 MinimizeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-
 local MinCorner = Instance.new("UICorner")
 MinCorner.CornerRadius = UDim.new(0, 6)
 MinCorner.Parent = MinimizeBtn
 
 local MaximizeBtn = Instance.new("TextButton")
 MaximizeBtn.Parent = Header
-MaximizeBtn.BackgroundColor3 = Color3.fromRGB(30, 31, 36)
+MaximizeBtn.BackgroundColor3 = Color3.fromRGB(35, 40, 55)
 MaximizeBtn.Position = UDim2.new(1, -65, 0.5, -12)
 MaximizeBtn.Size = UDim2.new(0, 24, 0, 24)
 MaximizeBtn.Font = Enum.Font.GothamBold
 MaximizeBtn.Text = "□"
 MaximizeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-
 local MaxCorner = Instance.new("UICorner")
 MaxCorner.CornerRadius = UDim.new(0, 6)
 MaxCorner.Parent = MaximizeBtn
 
 local CloseBtn = Instance.new("TextButton")
 CloseBtn.Parent = Header
-CloseBtn.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+CloseBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 80)
 CloseBtn.Position = UDim2.new(1, -35, 0.5, -12)
 CloseBtn.Size = UDim2.new(0, 24, 0, 24)
 CloseBtn.Font = Enum.Font.GothamBold
 CloseBtn.Text = "X"
 CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-
 local CloseCorner = Instance.new("UICorner")
 CloseCorner.CornerRadius = UDim.new(0, 6)
 CloseCorner.Parent = CloseBtn
 
 local Sidebar = Instance.new("Frame")
-Sidebar.Parent = MainFrame
-Sidebar.BackgroundColor3 = Color3.fromRGB(12, 13, 17)
+Sidebar.Parent = MainWrapper
+Sidebar.BackgroundColor3 = Color3.fromRGB(15, 17, 26)
 Sidebar.Position = UDim2.new(0, 0, 0, 40)
-Sidebar.Size = UDim2.new(0, 130, 1, -40)
+Sidebar.Size = UDim2.new(0, 140, 1, -40)
 Sidebar.BorderSizePixel = 0
 
+local SidebarCorner = Instance.new("UICorner")
+SidebarCorner.CornerRadius = UDim.new(0, 8)
+SidebarCorner.Parent = Sidebar
+
 local ContentArea = Instance.new("Frame")
-ContentArea.Parent = MainFrame
+ContentArea.Parent = MainWrapper
 ContentArea.BackgroundTransparency = 1
-ContentArea.Position = UDim2.new(0, 140, 0, 50)
-ContentArea.Size = UDim2.new(1, -150, 1, -60)
+ContentArea.Position = UDim2.new(0, 150, 0, 50)
+ContentArea.Size = UDim2.new(1, -160, 1, -60)
 
 MinimizeBtn.MouseButton1Click:Connect(function()
     if not State.PerformanceMode then
         local tInfo = TweenInfo.new(0.3)
-        TweenService:Create(RGBWrapper, tInfo, {Size = UDim2.new(0, 482, 0, 42)}):Play()
+        TweenService:Create(MainWrapper, tInfo, {Size = UDim2.new(0, 500, 0, 40)}):Play()
     else
-        RGBWrapper.Size = UDim2.new(0, 482, 0, 42)
+        MainWrapper.Size = UDim2.new(0, 500, 0, 40)
     end
     Sidebar.Visible = false
     ContentArea.Visible = false
@@ -349,10 +436,10 @@ end)
 MaximizeBtn.MouseButton1Click:Connect(function()
     if not State.PerformanceMode then
         local tInfo = TweenInfo.new(0.3)
-        TweenService:Create(RGBWrapper, tInfo, {Size = UDim2.new(0, 482, 0, 362)}):Play()
+        TweenService:Create(MainWrapper, tInfo, {Size = UDim2.new(0, 500, 0, 350)}):Play()
         task.wait(0.3)
     else
-        RGBWrapper.Size = UDim2.new(0, 482, 0, 362)
+        MainWrapper.Size = UDim2.new(0, 500, 0, 350)
     end
     Sidebar.Visible = true
     ContentArea.Visible = true
@@ -379,19 +466,19 @@ local function CreateTabBtn(text, pageName, yPos)
     Btn.Parent = Sidebar
     Btn.BackgroundTransparency = 1
     Btn.Position = UDim2.new(0, 0, 0, yPos)
-    Btn.Size = UDim2.new(1, 0, 0, 40)
+    Btn.Size = UDim2.new(1, 0, 0, 35)
     Btn.Font = Enum.Font.GothamBold
-    Btn.TextColor3 = Color3.fromRGB(120, 120, 130)
+    Btn.TextColor3 = Color3.fromRGB(120, 130, 150)
     Btn.TextSize = 12
     Btn.Text = text
 
     Btn.MouseButton1Click:Connect(function()
         for _, child in pairs(Sidebar:GetChildren()) do
             if child:IsA("TextButton") then
-                child.TextColor3 = Color3.fromRGB(120, 120, 130)
+                child.TextColor3 = Color3.fromRGB(120, 130, 150)
             end
         end
-        Btn.TextColor3 = Color3.fromRGB(100, 150, 255)
+        Btn.TextColor3 = Color3.fromRGB(138, 43, 226)
         SwitchPage(pageName)
     end)
     return Btn
@@ -415,25 +502,32 @@ local function CreatePage(name)
     return Page
 end
 
-local PageSettings = CreatePage("Settings")
 local PageCombat = CreatePage("Combat")
 local PageVisual = CreatePage("Visual")
 local PageFlings = CreatePage("Flings")
 local PageWorld = CreatePage("World")
+local PagePlayers = CreatePage("Players")
+local PageSettings = CreatePage("Settings")
 
-SwitchPage("Settings")
-local TabSet = CreateTabBtn("⚙️ SETTING", "Settings", 10)
-TabSet.TextColor3 = Color3.fromRGB(100, 150, 255)
-CreateTabBtn("⚔️ COMBAT", "Combat", 50)
-CreateTabBtn("👁️ VISUAL", "Visual", 90)
-CreateTabBtn("🌪️ FLINGS", "Flings", 130)
-CreateTabBtn("🌍 WORLD", "World", 170)
+SwitchPage("Combat")
+local Tab1 = CreateTabBtn("⚔️ COMBAT", "Combat", 10)
+Tab1.TextColor3 = Color3.fromRGB(138, 43, 226)
+CreateTabBtn("👁️ VISUAL", "Visual", 50)
+CreateTabBtn("🌪️ FLINGS", "Flings", 90)
+CreateTabBtn("🌍 WORLD", "World", 130)
+CreateTabBtn("👥 PLAYERS", "Players", 170)
+CreateTabBtn("⚙️ SETTINGS", "Settings", 260)
 
 local function CreateDualSwitch(page, text, stateKey)
     local Frame = Instance.new("Frame")
     Frame.Parent = page
-    Frame.BackgroundColor3 = Color3.fromRGB(20, 21, 26)
+    Frame.BackgroundColor3 = Color3.fromRGB(20, 22, 30)
     Frame.Size = UDim2.new(1, -5, 0, 45)
+    
+    local FStroke = Instance.new("UIStroke")
+    FStroke.Parent = Frame
+    FStroke.Color = Color3.fromRGB(40, 45, 60)
+    FStroke.Thickness = 1
     
     local FCorner = Instance.new("UICorner")
     FCorner.CornerRadius = UDim.new(0, 6)
@@ -454,10 +548,10 @@ local function CreateDualSwitch(page, text, stateKey)
     OnBtn.Parent = Frame
     OnBtn.Position = UDim2.new(0.1, 0, 0, 20)
     OnBtn.Size = UDim2.new(0.35, 0, 0, 20)
-    OnBtn.BackgroundColor3 = State[stateKey] and Color3.fromRGB(50, 255, 100) or Color3.fromRGB(40, 40, 40)
+    OnBtn.BackgroundColor3 = State[stateKey] and Color3.fromRGB(50, 255, 100) or Color3.fromRGB(40, 45, 60)
     OnBtn.Text = "ON"
     OnBtn.Font = Enum.Font.GothamBold
-    OnBtn.TextColor3 = State[stateKey] and Color3.fromRGB(0, 0, 0) or Color3.fromRGB(255, 255, 255)
+    OnBtn.TextColor3 = State[stateKey] and Color3.fromRGB(0, 0, 0) or Color3.fromRGB(200, 200, 200)
     
     local OnCorner = Instance.new("UICorner")
     OnCorner.CornerRadius = UDim.new(0, 4)
@@ -467,10 +561,10 @@ local function CreateDualSwitch(page, text, stateKey)
     OffBtn.Parent = Frame
     OffBtn.Position = UDim2.new(0.55, 0, 0, 20)
     OffBtn.Size = UDim2.new(0.35, 0, 0, 20)
-    OffBtn.BackgroundColor3 = not State[stateKey] and Color3.fromRGB(255, 50, 50) or Color3.fromRGB(40, 40, 40)
+    OffBtn.BackgroundColor3 = not State[stateKey] and Color3.fromRGB(255, 50, 50) or Color3.fromRGB(40, 45, 60)
     OffBtn.Text = "OFF"
     OffBtn.Font = Enum.Font.GothamBold
-    OffBtn.TextColor3 = not State[stateKey] and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(150, 150, 150)
+    OffBtn.TextColor3 = not State[stateKey] and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(200, 200, 200)
     
     local OffCorner = Instance.new("UICorner")
     OffCorner.CornerRadius = UDim.new(0, 4)
@@ -480,8 +574,8 @@ local function CreateDualSwitch(page, text, stateKey)
         State[stateKey] = true
         OnBtn.BackgroundColor3 = Color3.fromRGB(50, 255, 100)
         OnBtn.TextColor3 = Color3.fromRGB(0, 0, 0)
-        OffBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-        OffBtn.TextColor3 = Color3.fromRGB(150, 150, 150)
+        OffBtn.BackgroundColor3 = Color3.fromRGB(40, 45, 60)
+        OffBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
         XayzNotify("Setting", text .. " Enabled", 2)
     end)
     
@@ -489,8 +583,8 @@ local function CreateDualSwitch(page, text, stateKey)
         State[stateKey] = false
         OffBtn.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
         OffBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-        OnBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-        OnBtn.TextColor3 = Color3.fromRGB(150, 150, 150)
+        OnBtn.BackgroundColor3 = Color3.fromRGB(40, 45, 60)
+        OnBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
         XayzNotify("Setting", text .. " Disabled", 2)
     end)
     return Frame
@@ -499,9 +593,15 @@ end
 local function CreateDropdown(page, text)
     local Container = Instance.new("Frame")
     Container.Parent = page
-    Container.BackgroundColor3 = Color3.fromRGB(20, 21, 26)
+    Container.BackgroundColor3 = Color3.fromRGB(20, 22, 30)
     Container.Size = UDim2.new(1, -5, 0, 35)
     Container.ClipsDescendants = true
+    
+    local FStroke = Instance.new("UIStroke")
+    FStroke.Parent = Container
+    FStroke.Color = Color3.fromRGB(40, 45, 60)
+    FStroke.Thickness = 1
+
     local ContCorner = Instance.new("UICorner")
     ContCorner.CornerRadius = UDim.new(0, 6)
     ContCorner.Parent = Container
@@ -512,7 +612,7 @@ local function CreateDropdown(page, text)
     HeaderBtn.Position = UDim2.new(0, 10, 0, 0)
     HeaderBtn.Size = UDim2.new(1, -10, 0, 35)
     HeaderBtn.Font = Enum.Font.GothamBold
-    HeaderBtn.TextColor3 = Color3.fromRGB(180, 180, 190)
+    HeaderBtn.TextColor3 = Color3.fromRGB(138, 43, 226)
     HeaderBtn.TextSize = 12
     HeaderBtn.TextXAlignment = Enum.TextXAlignment.Left
     HeaderBtn.Text = text .. " ▼"
@@ -562,8 +662,13 @@ end
 local function CreateToggle(page, text, stateKey, parentStateKey)
     local Frame = Instance.new("Frame")
     Frame.Parent = page
-    Frame.BackgroundColor3 = Color3.fromRGB(20, 21, 26)
+    Frame.BackgroundColor3 = Color3.fromRGB(20, 22, 30)
     Frame.Size = UDim2.new(1, -5, 0, 35)
+    
+    local FStroke = Instance.new("UIStroke")
+    FStroke.Parent = Frame
+    FStroke.Color = Color3.fromRGB(40, 45, 60)
+    FStroke.Thickness = 1
     
     local FCorner = Instance.new("UICorner")
     FCorner.CornerRadius = UDim.new(0, 6)
@@ -584,7 +689,7 @@ local function CreateToggle(page, text, stateKey, parentStateKey)
     Button.Parent = Frame
     Button.Position = UDim2.new(1, -50, 0.5, -8)
     Button.Size = UDim2.new(0, 36, 0, 16)
-    Button.BackgroundColor3 = Color3.fromRGB(30, 31, 36)
+    Button.BackgroundColor3 = Color3.fromRGB(15, 17, 22)
     Button.Text = ""
     
     local BCorner = Instance.new("UICorner")
@@ -593,7 +698,7 @@ local function CreateToggle(page, text, stateKey, parentStateKey)
     
     local Status = Instance.new("Frame")
     Status.Parent = Button
-    Status.BackgroundColor3 = Color3.fromRGB(150, 150, 150)
+    Status.BackgroundColor3 = Color3.fromRGB(100, 100, 120)
     Status.Position = UDim2.new(0, 2, 0.5, -6)
     Status.Size = UDim2.new(0, 12, 0, 12)
     
@@ -604,10 +709,10 @@ local function CreateToggle(page, text, stateKey, parentStateKey)
     local function updateUI()
         if State[stateKey] then
             Status.Position = UDim2.new(1, -14, 0.5, -6)
-            Status.BackgroundColor3 = Color3.fromRGB(100, 150, 255)
+            Status.BackgroundColor3 = Color3.fromRGB(138, 43, 226)
         else
             Status.Position = UDim2.new(0, 2, 0.5, -6)
-            Status.BackgroundColor3 = Color3.fromRGB(150, 150, 150)
+            Status.BackgroundColor3 = Color3.fromRGB(100, 100, 120)
         end
     end
 
@@ -634,19 +739,19 @@ local function CreateToggle(page, text, stateKey, parentStateKey)
             local tGoal = {}
             if State[stateKey] then
                 tGoal.Position = UDim2.new(1, -14, 0.5, -6)
-                tGoal.BackgroundColor3 = Color3.fromRGB(100, 150, 255)
+                tGoal.BackgroundColor3 = Color3.fromRGB(138, 43, 226)
             else
                 tGoal.Position = UDim2.new(0, 2, 0.5, -6)
-                tGoal.BackgroundColor3 = Color3.fromRGB(150, 150, 150)
+                tGoal.BackgroundColor3 = Color3.fromRGB(100, 100, 120)
             end
             TweenService:Create(Status, tInfo, tGoal):Play()
         else
             if State[stateKey] then
                 Status.Position = UDim2.new(1, -14, 0.5, -6)
-                Status.BackgroundColor3 = Color3.fromRGB(100, 150, 255)
+                Status.BackgroundColor3 = Color3.fromRGB(138, 43, 226)
             else
                 Status.Position = UDim2.new(0, 2, 0.5, -6)
-                Status.BackgroundColor3 = Color3.fromRGB(150, 150, 150)
+                Status.BackgroundColor3 = Color3.fromRGB(100, 100, 120)
             end
         end
         
@@ -695,7 +800,7 @@ end
 local function CreateInput(page, text, stateKey, parentStateKey)
     local Box = Instance.new("TextBox")
     Box.Parent = page
-    Box.BackgroundColor3 = Color3.fromRGB(20, 21, 26)
+    Box.BackgroundColor3 = Color3.fromRGB(15, 17, 22)
     Box.Size = UDim2.new(1, -5, 0, 35)
     Box.Font = Enum.Font.Gotham
     Box.Text = ""
@@ -703,6 +808,11 @@ local function CreateInput(page, text, stateKey, parentStateKey)
     Box.TextColor3 = Color3.fromRGB(255, 255, 255)
     Box.TextSize = 12
     
+    local FStroke = Instance.new("UIStroke")
+    FStroke.Parent = Box
+    FStroke.Color = Color3.fromRGB(40, 45, 60)
+    FStroke.Thickness = 1
+
     local BCorner = Instance.new("UICorner")
     BCorner.CornerRadius = UDim.new(0, 6)
     BCorner.Parent = Box
@@ -732,8 +842,13 @@ end
 local function CreateStepper(page, text, stateKey, parentStateKey)
     local Frame = Instance.new("Frame")
     Frame.Parent = page
-    Frame.BackgroundColor3 = Color3.fromRGB(20, 21, 26)
+    Frame.BackgroundColor3 = Color3.fromRGB(20, 22, 30)
     Frame.Size = UDim2.new(1, -5, 0, 35)
+    
+    local FStroke = Instance.new("UIStroke")
+    FStroke.Parent = Frame
+    FStroke.Color = Color3.fromRGB(40, 45, 60)
+    FStroke.Thickness = 1
     
     local FCorner = Instance.new("UICorner")
     FCorner.CornerRadius = UDim.new(0, 6)
@@ -754,7 +869,7 @@ local function CreateStepper(page, text, stateKey, parentStateKey)
     MinusBtn.Parent = Frame
     MinusBtn.Position = UDim2.new(1, -100, 0.5, -12)
     MinusBtn.Size = UDim2.new(0, 24, 0, 24)
-    MinusBtn.BackgroundColor3 = Color3.fromRGB(35, 36, 42)
+    MinusBtn.BackgroundColor3 = Color3.fromRGB(35, 40, 55)
     MinusBtn.Text = "-"
     MinusBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
     
@@ -766,7 +881,7 @@ local function CreateStepper(page, text, stateKey, parentStateKey)
     ValueBox.Parent = Frame
     ValueBox.Position = UDim2.new(1, -70, 0.5, -12)
     ValueBox.Size = UDim2.new(0, 34, 0, 24)
-    ValueBox.BackgroundColor3 = Color3.fromRGB(15, 16, 20)
+    ValueBox.BackgroundColor3 = Color3.fromRGB(12, 14, 20)
     ValueBox.Text = tostring(State[stateKey])
     ValueBox.TextColor3 = Color3.fromRGB(255, 255, 255)
     
@@ -778,7 +893,7 @@ local function CreateStepper(page, text, stateKey, parentStateKey)
     PlusBtn.Parent = Frame
     PlusBtn.Position = UDim2.new(1, -30, 0.5, -12)
     PlusBtn.Size = UDim2.new(0, 24, 0, 24)
-    PlusBtn.BackgroundColor3 = Color3.fromRGB(35, 36, 42)
+    PlusBtn.BackgroundColor3 = Color3.fromRGB(35, 40, 55)
     PlusBtn.Text = "+"
     PlusBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
     
@@ -866,15 +981,15 @@ local DropESP = CreateDropdown(PageVisual, "Advanced ESP")
 CreateToggle(DropESP, "Show Box", "ESP_Box", "ESP")
 CreateToggle(DropESP, "Show Name & Distance", "ESP_Name", "ESP")
 CreateToggle(DropESP, "Show Healthbar", "ESP_Health", "ESP")
-CreateToggle(DropESP, "Show Tracer (Lines)", "ESP_Tracer", "ESP")
-CreateToggle(DropESP, "Show Chams (Highlight)", "ESP_Chams", "ESP")
+CreateToggle(DropESP, "Show Tracer", "ESP_Tracer", "ESP")
+CreateToggle(DropESP, "Show Chams", "ESP_Chams", "ESP")
 
 CreateInput(PageVisual, "Set POV Camera (1-120)", "POV", nil)
 
 CreateToggle(PageFlings, "Fling", "FlingV2", nil)
 CreateToggle(PageFlings, "Fling V2", "FlingV3", nil)
 CreateInput(PageFlings, "Set Fling Power (Def: 50)", "FlingPower", nil)
-CreateToggle(PageFlings, "Super Touch Fling", "SuperFling", nil)
+CreateToggle(PageFlings, "Super Touch Fling (Body Aura)", "SuperFling", nil)
 
 CreateButton(PageFlings, "Teleport to ALL Players", Color3.fromRGB(100, 150, 255), function()
     XayzNotify("Teleporting", "Transporting to all players...", 3)
@@ -909,7 +1024,52 @@ end, nil)
 CreateToggle(PageFlings, "Dino Animation", "DinoAnim", nil)
 CreateToggle(PageFlings, "Punch Animation", "PunchAnim", nil)
 
-CreateButton(PageWorld, "Obliterator Tool", Color3.fromRGB(138, 43, 226), function()
+CreateToggle(PageFlings, "Shaking Hands", "ArmAnim", nil)
+local DropArm = CreateDropdown(PageFlings, "Advanced Arm Mover")
+CreateStepper(DropArm, "Arm Speed", "ArmSpeed", "ArmAnim")
+CreateStepper(DropArm, "Arm Intensity", "ArmIntensity", "ArmAnim")
+
+CreateToggle(PageFlings, "married/gay", "FakeKiller", nil)
+CreateToggle(PageFlings, "Show penis", "ShowStick", "FakeKiller")
+CreateButton(PageFlings, "release sperm fluid", Color3.fromRGB(200, 200, 200), function()
+    local char = LocalPlayer.Character
+    if char and char:FindFirstChild("HumanoidRootPart") and myTool and myTool:FindFirstChild("Tip") then
+        for i = 1, 50 do
+            local drop = Instance.new("Part", Workspace)
+            drop.Size = Vector3.new(0.2, 0.2, 0.2)
+            drop.Color = Color3.fromRGB(255, 255, 255)
+            drop.Material = Enum.Material.Neon
+            drop.Shape = Enum.PartType.Ball
+            drop.Position = myTool.Tip.Position
+            drop.Velocity = (myTool.Tip.CFrame.LookVector * 50) + Vector3.new(0, 20, 0)
+            game:GetService("Debris"):AddItem(drop, 2)
+            task.wait(0.05)
+        end
+    end
+end, "FakeKiller")
+
+local mouse = LocalPlayer:GetMouse()
+local targetPlayer = nil
+
+mouse.Button1Down:Connect(function()
+    if State.FakeKiller then
+        local target = mouse.Target
+        if target and target.Parent:FindFirstChild("Humanoid") then
+            targetPlayer = target.Parent
+            
+            task.spawn(function()
+                while targetPlayer and State.FakeKiller do
+                    char:SetPrimaryPartCFrame(targetPlayer.PrimaryPartCFrame * CFrame.new(0, 0, 1))
+            task.wait(0.1)
+            char:SetPrimaryPartCFrame(targetPlayer.PrimaryPartCFrame * CFrame.new(0, 0, 0.5))
+            task.wait(0.1)
+                end
+            end)
+        end
+    end
+end)
+
+CreateButton(PageWorld, "Get Obliterator Tool", Color3.fromRGB(138, 43, 226), function()
     local backpack = LocalPlayer:WaitForChild("Backpack")
     local tool1 = Instance.new("Tool")
     tool1.Name = "OBLITERATOR"
@@ -935,14 +1095,7 @@ end, nil)
 
 CreateButton(PageWorld, "Get F3X (Btools)", Color3.fromRGB(0, 200, 100), function()
     pcall(function()
-        loadstring(game:GetObjects("rbxassetid://142785488")[1].Source)()
-    end)
-    XayzNotify("F3X Loaded", "Check your inventory.", 2)
-end, nil)
-
-CreateButton(PageWorld, "Get F3X (Btools) (Backup)", Color3.fromRGB(0, 200, 100), function()
-    pcall(function()
-        loadstring(game:GetObjects("rbxassetid://142485815")[1].Source)()
+        loadstring(game:GetObjects("rbxassetid://22484922")[1].Source)()
     end)
     XayzNotify("F3X Loaded", "Check your inventory.", 2)
 end, nil)
@@ -954,10 +1107,42 @@ local DropRing = CreateDropdown(PageWorld, "Advanced Rings")
 CreateStepper(DropRing, "Ring Speed", "RingSpeed", "SuperRing")
 CreateStepper(DropRing, "Ring Height", "RingHeight", "SuperRing")
 CreateStepper(DropRing, "Ring Distance", "RingDistance", "SuperRing")
-CreateStepper(DropRing, "Attraction Power", "RingAttraction", "SuperRing")
 
 CreateToggle(PageWorld, "Blackhole", "Blackhole", nil)
-CreateStepper(PageWorld, "Blackhole Distance", "BlackholeDistance", "Blackhole")
+local DropBH = CreateDropdown(PageWorld, "Advanced Blackhole")
+CreateStepper(DropBH, "Blackhole Distance", "BlackholeDistance", "Blackhole")
+CreateStepper(DropBH, "Blackhole Radius", "BlackholeRadius", "Blackhole")
+CreateStepper(DropBH, "Blackhole Speed", "BlackholeSpeed", "Blackhole")
+
+local PlayerListContainer = CreateDropdown(PagePlayers, "Server Players List")
+
+local function RefreshPlayerList()
+    for _, child in pairs(PlayerListContainer:GetChildren()) do
+        if child:IsA("TextLabel") then
+            child:Destroy()
+        end
+    end
+    for _, p in pairs(Players:GetPlayers()) do
+        local PLabel = Instance.new("TextLabel")
+        PLabel.Parent = PlayerListContainer
+        PLabel.BackgroundColor3 = Color3.fromRGB(30, 32, 45)
+        PLabel.Size = UDim2.new(1, -5, 0, 30)
+        PLabel.Font = Enum.Font.Gotham
+        PLabel.TextColor3 = Color3.fromRGB(200, 220, 255)
+        PLabel.TextSize = 12
+        PLabel.Text = "👤 " .. p.DisplayName .. " (@" .. p.Name .. ")"
+        
+        local PCorner = Instance.new("UICorner")
+        PCorner.CornerRadius = UDim.new(0, 4)
+        PCorner.Parent = PLabel
+    end
+end
+CreateButton(PagePlayers, "Refresh List", Color3.fromRGB(100, 150, 255), function()
+    RefreshPlayerList()
+    XayzNotify("Player List", "List Refreshed", 2)
+end, nil)
+RefreshPlayerList()
+
 
 local FlyLoop = nil
 local FlyBV = nil
@@ -1297,7 +1482,6 @@ end)
 
 local flingBav = nil
 local flingV3Conn = nil
-local hdFired = false
 
 RunService.RenderStepped:Connect(function()
     local char = LocalPlayer.Character
@@ -1328,7 +1512,7 @@ RunService.RenderStepped:Connect(function()
             hrp.RotVelocity = Vector3.new(0, 0, 0)
         end
     end
-    
+
     if State.FlingV3 then
         if hrp and not flingV3Conn then
             for _, v in pairs(char:GetDescendants()) do
@@ -1350,26 +1534,6 @@ RunService.RenderStepped:Connect(function()
             flingV3Conn:Disconnect()
             flingV3Conn = nil
         end
-    end
-    
-    if State.HDAdmin then
-        if not hdFired then
-            local HD = game:GetService("ReplicatedStorage"):FindFirstChild("HDAdminClient")
-            if HD then
-                pcall(function()
-                    local mainModule = require(LocalPlayer.PlayerScripts:WaitForChild("HDAdminClient"):WaitForChild("Main"))
-                    mainModule.Settings.Rank = 5
-                    mainModule.Settings.RankName = "The King Xayz 👑"
-                    local remote = game:GetService("ReplicatedStorage"):FindFirstChild("HDAdminRemote")
-                    if remote then
-                        remote:FireServer("Rank", LocalPlayer, 5) 
-                    end
-                end)
-            end
-            hdFired = true
-        end
-    else
-        hdFired = false
     end
 end)
 
@@ -1412,10 +1576,117 @@ punchAnimation.AnimationId = "rbxassetid://84674780"
 
 local dTrack = nil
 local pTrack = nil
+local hdFired = false
+local angleBH = 1
+
+local function CreateStick()
+    local char = LocalPlayer.Character
+    local root = char and char:FindFirstChild("HumanoidRootPart")
+    if not root then return nil end
+    local model = Instance.new("Model", char)
+    model.Name = "StickWood"
+
+    local shaft = Instance.new("Part", model)
+    shaft.Name = "Shaft"
+    shaft.Size = Vector3.new(0.5, 0.5, 2.5)
+    shaft.Color = Color3.fromRGB(255, 204, 153)
+    shaft.Material = Enum.Material.SmoothPlastic
+    shaft.CanCollide = false
+
+    local tip = Instance.new("Part", model)
+    tip.Name = "Tip"
+    tip.Size = Vector3.new(0.6, 0.6, 0.6)
+    tip.Shape = Enum.PartType.Ball
+    tip.Color = Color3.fromRGB(255, 153, 204)
+    tip.Parent = model
+
+    local ball1 = Instance.new("Part", model)
+    ball1.Size = Vector3.new(0.7, 0.7, 0.7)
+    ball1.Shape = Enum.PartType.Ball
+    ball1.Color = Color3.fromRGB(255, 204, 153)
+    ball1.Parent = model
+
+    local attachment = Instance.new("Attachment", root)
+    attachment.Position = Vector3.new(0, -1, -0.5)
+    
+    local shaftAttachment = Instance.new("Attachment", shaft)
+    shaftAttachment.Position = Vector3.new(0, 0, 1.25)
+
+    local rope = Instance.new("BallSocketConstraint", char)
+    rope.Attachment0 = attachment
+    rope.Attachment1 = shaftAttachment
+    
+    return model
+end
+local myTool = nil
 
 RunService.Heartbeat:Connect(function()
     local char = LocalPlayer.Character
     if not char then return end
+    
+    local armJoint = nil
+    local isR15 = char:FindFirstChild("UpperTorso") ~= nil
+    if isR15 then
+        armJoint = char:FindFirstChild("RightUpperArm") and char.RightUpperArm:FindFirstChild("RightShoulder")
+    else
+        armJoint = char:FindFirstChild("Torso") and char.Torso:FindFirstChild("Right Shoulder")
+    end
+
+    if armJoint then
+        local originalC0 = armJoint:GetAttribute("OriginalC0")
+        if not originalC0 then
+            armJoint:SetAttribute("OriginalC0", armJoint.C0)
+            originalC0 = armJoint.C0
+        end
+
+        if State.ArmAnim then
+            local move = math.sin(tick() * State.ArmSpeed) * State.ArmIntensity
+            if isR15 then
+                armJoint.C0 = originalC0 * CFrame.new(0, move, -0.5) * CFrame.Angles(math.rad(-90), 0, 0)
+            else
+                armJoint.C0 = originalC0 * CFrame.new(-0.2, move, -0.5) * CFrame.Angles(math.rad(-90), math.rad(20), 0)
+            end
+        else
+            armJoint.C0 = originalC0
+        end
+    end
+    
+    if State.HDAdmin then
+        if not hdFired then
+            local HD = game:GetService("ReplicatedStorage"):FindFirstChild("HDAdminClient")
+            if HD then
+                pcall(function()
+                    local mainModule = require(LocalPlayer.PlayerScripts:WaitForChild("HDAdminClient"):WaitForChild("Main"))
+                    mainModule.Settings.Rank = 5
+                    mainModule.Settings.RankName = "The King Xayz 👑"
+                    local remote = game:GetService("ReplicatedStorage"):FindFirstChild("HDAdminRemote")
+                    if remote then
+                        remote:FireServer("Rank", LocalPlayer, 5) 
+                    end
+                end)
+            end
+            hdFired = true
+        end
+    else
+        hdFired = false
+    end
+    
+    if State.FakeKiller then
+        if not myTool then
+            myTool = CreateStick()
+        end
+        if myTool then
+            myTool.Parent = char
+            myTool.Visible = State.ShowStick
+        end
+        local mouse = LocalPlayer:GetMouse()
+        local targetPlayer = nil
+    else
+        if myTool then
+            myTool:Destroy()
+            myTool = nil
+        end
+    end
     
     local hum = char:FindFirstChild("Humanoid")
     if hum then
@@ -1458,11 +1729,14 @@ RunService.Heartbeat:Connect(function()
     local anchor, anchorAttachment = GetAnchorSetup()
 
     if State.Blackhole then
-        anchor.CFrame = hrp.CFrame * CFrame.new(0, 0, -State.BlackholeDistance)
+        angleBH = angleBH + math.rad(State.BlackholeSpeed)
+        local offsetX = math.cos(angleBH) * State.BlackholeRadius
+        local offsetZ = math.sin(angleBH) * State.BlackholeRadius
+        anchorAttachment.WorldCFrame = hrp.CFrame * CFrame.new(offsetX, 0, offsetZ)
+
         for _, v in pairs(Workspace:GetDescendants()) do
             if v:IsA("Part") and not v.Anchored and not v.Parent:FindFirstChild("Humanoid") and v.Name ~= "Handle" then
                 v.CanCollide = false
-                
                 if not v:FindFirstChild("XayzAlign") then
                     local att0 = Instance.new("Attachment", v)
                     local align = Instance.new("AlignPosition", v)
@@ -1486,7 +1760,6 @@ RunService.Heartbeat:Connect(function()
             if v:IsA("Part") and not v.Anchored and not v.Parent:FindFirstChild("Humanoid") and v.Name ~= "Handle" then
                 table.insert(unanchoredParts, v)
                 v.CanCollide = false
-                
                 if v:FindFirstChild("XayzAlign") then
                     v:FindFirstChild("XayzAlign"):Destroy()
                 end
