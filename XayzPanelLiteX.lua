@@ -8,6 +8,7 @@ local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 local Workspace = game:GetService("Workspace")
+local HttpService = game:GetService("HttpService")
 
 local LocalPlayer = Players.LocalPlayer
 local Camera = Workspace.CurrentCamera or Workspace:FindFirstChild("Camera")
@@ -39,15 +40,17 @@ local State = {
     PunchAnim = false,
     
     SuperRing = false,
-    RingSpeed = 20,
-    RingHeight = 0,
-    RingDistance = 50,
+    RingSpeed = 10,
+    RingHeight = 5,
+    RingDistance = 15,
+    RingAttraction = 1000,
+    
     Blackhole = false,
     BlackholeDistance = 30
 }
 
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "XayzExV3X"
+ScreenGui.Name = "XayzModernV7"
 ScreenGui.ResetOnSpawn = false
 
 local successGui = false
@@ -103,81 +106,242 @@ local function MakeDraggable(frame)
     end)
 end
 
-local MainFrame = Instance.new("Frame")
-MainFrame.Parent = ScreenGui
-MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
-MainFrame.Position = UDim2.new(0.5, -240, 0.5, -160)
-MainFrame.Size = UDim2.new(0, 480, 0, 360)
-MainFrame.ClipsDescendants = true
-MakeDraggable(MainFrame)
+local NotifContainer = Instance.new("Frame")
+NotifContainer.Name = "NotifContainer"
+NotifContainer.Parent = ScreenGui
+NotifContainer.BackgroundTransparency = 1
+NotifContainer.Position = UDim2.new(1, -260, 1, -20)
+NotifContainer.Size = UDim2.new(0, 250, 0, 0)
+NotifContainer.AnchorPoint = Vector2.new(0, 1)
 
-local MainCorner = Instance.new("UICorner")
-MainCorner.CornerRadius = UDim.new(0, 10)
-MainCorner.Parent = MainFrame
+local NotifList = Instance.new("UIListLayout")
+NotifList.Parent = NotifContainer
+NotifList.SortOrder = Enum.SortOrder.LayoutOrder
+NotifList.VerticalAlignment = Enum.VerticalAlignment.Bottom
+NotifList.Padding = UDim.new(0, 10)
+
+local function XayzNotify(title, text, duration)
+    local notifDuration = duration or 3
+    
+    local NotifFrame = Instance.new("Frame")
+    NotifFrame.Parent = NotifContainer
+    NotifFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+    NotifFrame.Size = UDim2.new(1, 0, 0, 65)
+    NotifFrame.BackgroundTransparency = 1
+    
+    local NotifCorner = Instance.new("UICorner")
+    NotifCorner.CornerRadius = UDim.new(0, 8)
+    NotifCorner.Parent = NotifFrame
+    
+    local Accent = Instance.new("Frame")
+    Accent.Parent = NotifFrame
+    Accent.BackgroundColor3 = Color3.fromRGB(100, 150, 255)
+    Accent.Size = UDim2.new(0, 4, 1, 0)
+    
+    local AccentCorner = Instance.new("UICorner")
+    AccentCorner.CornerRadius = UDim.new(0, 8)
+    AccentCorner.Parent = Accent
+    
+    local Tbl = Instance.new("TextLabel")
+    Tbl.Parent = NotifFrame
+    Tbl.BackgroundTransparency = 1
+    Tbl.Position = UDim2.new(0, 15, 0, 5)
+    Tbl.Size = UDim2.new(1, -20, 0, 20)
+    Tbl.Font = Enum.Font.GothamBold
+    Tbl.Text = title
+    Tbl.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Tbl.TextSize = 14
+    Tbl.TextXAlignment = Enum.TextXAlignment.Left
+    Tbl.TextTransparency = 1
+    
+    local Dbl = Instance.new("TextLabel")
+    Dbl.Parent = NotifFrame
+    Dbl.BackgroundTransparency = 1
+    Dbl.Position = UDim2.new(0, 15, 0, 25)
+    Dbl.Size = UDim2.new(1, -20, 0, 30)
+    Dbl.Font = Enum.Font.Gotham
+    Dbl.Text = text
+    Dbl.TextColor3 = Color3.fromRGB(180, 180, 180)
+    Dbl.TextSize = 12
+    Dbl.TextWrapped = true
+    Dbl.TextXAlignment = Enum.TextXAlignment.Left
+    Dbl.TextTransparency = 1
+    
+    local ProgBg = Instance.new("Frame")
+    ProgBg.Parent = NotifFrame
+    ProgBg.BackgroundColor3 = Color3.fromRGB(35, 35, 40)
+    ProgBg.Position = UDim2.new(0, 15, 1, -5)
+    ProgBg.Size = UDim2.new(1, -25, 0, 3)
+    ProgBg.BackgroundTransparency = 1
+    
+    local ProgBgCorner = Instance.new("UICorner")
+    ProgBgCorner.CornerRadius = UDim.new(1, 0)
+    ProgBgCorner.Parent = ProgBg
+    
+    local ProgFill = Instance.new("Frame")
+    ProgFill.Parent = ProgBg
+    ProgFill.BackgroundColor3 = Color3.fromRGB(100, 150, 255)
+    ProgFill.Size = UDim2.new(1, 0, 1, 0)
+    ProgFill.BackgroundTransparency = 1
+    
+    local ProgFillCorner = Instance.new("UICorner")
+    ProgFillCorner.CornerRadius = UDim.new(1, 0)
+    ProgFillCorner.Parent = ProgFill
+    
+    local tInfoIn = TweenInfo.new(0.3)
+    TweenService:Create(NotifFrame, tInfoIn, {BackgroundTransparency = 0}):Play()
+    TweenService:Create(Tbl, tInfoIn, {TextTransparency = 0}):Play()
+    TweenService:Create(Dbl, tInfoIn, {TextTransparency = 0}):Play()
+    TweenService:Create(ProgBg, tInfoIn, {BackgroundTransparency = 0}):Play()
+    TweenService:Create(ProgFill, tInfoIn, {BackgroundTransparency = 0}):Play()
+    
+    local progTweenInfo = TweenInfo.new(notifDuration, Enum.EasingStyle.Linear)
+    local progTween = TweenService:Create(ProgFill, progTweenInfo, {Size = UDim2.new(0, 0, 1, 0)})
+    progTween:Play()
+    
+    progTween.Completed:Connect(function()
+        local tInfoOut = TweenInfo.new(0.3)
+        TweenService:Create(NotifFrame, tInfoOut, {BackgroundTransparency = 1}):Play()
+        TweenService:Create(Tbl, tInfoOut, {TextTransparency = 1}):Play()
+        TweenService:Create(Dbl, tInfoOut, {TextTransparency = 1}):Play()
+        TweenService:Create(ProgBg, tInfoOut, {BackgroundTransparency = 1}):Play()
+        TweenService:Create(ProgFill, tInfoOut, {BackgroundTransparency = 1}):Play()
+        task.wait(0.3)
+        NotifFrame:Destroy()
+    end)
+end
+
+local RGBWrapper = Instance.new("Frame")
+RGBWrapper.Parent = ScreenGui
+RGBWrapper.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+RGBWrapper.Position = UDim2.new(0.5, -241, 0.5, -161)
+RGBWrapper.Size = UDim2.new(0, 482, 0, 362)
+MakeDraggable(RGBWrapper) 
+
+local RGBWrapperCorner = Instance.new("UICorner")
+RGBWrapperCorner.CornerRadius = UDim.new(0, 11)
+RGBWrapperCorner.Parent = RGBWrapper
+
+local UIGradient = Instance.new("UIGradient")
+UIGradient.Parent = RGBWrapper
+UIGradient.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0.00, Color3.fromRGB(255, 0, 0)),
+    ColorSequenceKeypoint.new(0.16, Color3.fromRGB(255, 127, 0)),
+    ColorSequenceKeypoint.new(0.33, Color3.fromRGB(255, 255, 0)),
+    ColorSequenceKeypoint.new(0.50, Color3.fromRGB(0, 255, 0)),
+    ColorSequenceKeypoint.new(0.66, Color3.fromRGB(0, 0, 255)),
+    ColorSequenceKeypoint.new(0.83, Color3.fromRGB(75, 0, 130)),
+    ColorSequenceKeypoint.new(1.00, Color3.fromRGB(148, 0, 211))
+}
+
+RunService.RenderStepped:Connect(function()
+    UIGradient.Rotation = (UIGradient.Rotation + 1) % 360
+end)
+
+local MainFrame = Instance.new("Frame")
+MainFrame.Parent = RGBWrapper
+MainFrame.BackgroundColor3 = Color3.fromRGB(10, 11, 14)
+MainFrame.Position = UDim2.new(0, 1, 0, 1)
+MainFrame.Size = UDim2.new(1, -2, 1, -2)
+MainFrame.ClipsDescendants = true
+
+local MainFrameCorner = Instance.new("UICorner")
+MainFrameCorner.CornerRadius = UDim.new(0, 10)
+MainFrameCorner.Parent = MainFrame
+
+local LoadFrame = Instance.new("Frame")
+LoadFrame.Parent = MainFrame
+LoadFrame.BackgroundColor3 = Color3.fromRGB(10, 11, 14)
+LoadFrame.Size = UDim2.new(1, 0, 1, 0)
+LoadFrame.ZIndex = 100
+
+local LoadFrameCorner = Instance.new("UICorner")
+LoadFrameCorner.CornerRadius = UDim.new(0, 10)
+LoadFrameCorner.Parent = LoadFrame
+
+local LoadTitle = Instance.new("TextLabel")
+LoadTitle.Parent = LoadFrame
+LoadTitle.BackgroundTransparency = 1
+LoadTitle.Size = UDim2.new(1, 0, 1, 0)
+LoadTitle.Font = Enum.Font.GothamBlack
+LoadTitle.Text = "X A Y Z   L I T E X"
+LoadTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+LoadTitle.TextSize = 24
+LoadTitle.ZIndex = 101
+
+task.spawn(function()
+    task.wait(1)
+    local tInfo = TweenInfo.new(0.5)
+    TweenService:Create(LoadTitle, tInfo, {TextTransparency = 1}):Play()
+    task.wait(0.5)
+    TweenService:Create(LoadFrame, tInfo, {BackgroundTransparency = 1}):Play()
+    task.wait(0.5)
+    LoadFrame.Visible = false
+    XayzNotify("System Loaded", "Xayz Panel LiteX is ready to use.", 4)
+end)
 
 local Header = Instance.new("Frame")
 Header.Parent = MainFrame
-Header.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
+Header.BackgroundColor3 = Color3.fromRGB(15, 16, 20)
 Header.Size = UDim2.new(1, 0, 0, 40)
-local HeaderCorner = Instance.new("UICorner")
-HeaderCorner.CornerRadius = UDim.new(0, 10)
-HeaderCorner.Parent = Header
+Header.BorderSizePixel = 0
 
 local TitleLabel = Instance.new("TextLabel")
 TitleLabel.Parent = Header
 TitleLabel.BackgroundTransparency = 1
 TitleLabel.Position = UDim2.new(0, 15, 0, 0)
 TitleLabel.Size = UDim2.new(0.6, 0, 1, 0)
-TitleLabel.Font = Enum.Font.GothamBlack
-TitleLabel.TextColor3 = Color3.fromRGB(0, 255, 200)
-TitleLabel.TextSize = 16
+TitleLabel.Font = Enum.Font.GothamBold
+TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+TitleLabel.TextSize = 14
 TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
 TitleLabel.Text = "🖥️ Xayz Panel LiteX"
 
 local MinimizeBtn = Instance.new("TextButton")
 MinimizeBtn.Parent = Header
-MinimizeBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 50)
-MinimizeBtn.Position = UDim2.new(1, -100, 0.5, -12)
+MinimizeBtn.BackgroundColor3 = Color3.fromRGB(30, 31, 36)
+MinimizeBtn.Position = UDim2.new(1, -95, 0.5, -12)
 MinimizeBtn.Size = UDim2.new(0, 24, 0, 24)
 MinimizeBtn.Font = Enum.Font.GothamBold
 MinimizeBtn.Text = "-"
 MinimizeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+
 local MinCorner = Instance.new("UICorner")
 MinCorner.CornerRadius = UDim.new(0, 6)
 MinCorner.Parent = MinimizeBtn
 
 local MaximizeBtn = Instance.new("TextButton")
 MaximizeBtn.Parent = Header
-MaximizeBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 50)
+MaximizeBtn.BackgroundColor3 = Color3.fromRGB(30, 31, 36)
 MaximizeBtn.Position = UDim2.new(1, -65, 0.5, -12)
 MaximizeBtn.Size = UDim2.new(0, 24, 0, 24)
 MaximizeBtn.Font = Enum.Font.GothamBold
 MaximizeBtn.Text = "□"
 MaximizeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+
 local MaxCorner = Instance.new("UICorner")
 MaxCorner.CornerRadius = UDim.new(0, 6)
 MaxCorner.Parent = MaximizeBtn
 
 local CloseBtn = Instance.new("TextButton")
 CloseBtn.Parent = Header
-CloseBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
-CloseBtn.Position = UDim2.new(1, -30, 0.5, -12)
+CloseBtn.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+CloseBtn.Position = UDim2.new(1, -35, 0.5, -12)
 CloseBtn.Size = UDim2.new(0, 24, 0, 24)
 CloseBtn.Font = Enum.Font.GothamBold
 CloseBtn.Text = "X"
 CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+
 local CloseCorner = Instance.new("UICorner")
 CloseCorner.CornerRadius = UDim.new(0, 6)
 CloseCorner.Parent = CloseBtn
 
 local Sidebar = Instance.new("Frame")
 Sidebar.Parent = MainFrame
-Sidebar.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+Sidebar.BackgroundColor3 = Color3.fromRGB(12, 13, 17)
 Sidebar.Position = UDim2.new(0, 0, 0, 40)
 Sidebar.Size = UDim2.new(0, 130, 1, -40)
-local SidebarCorner = Instance.new("UICorner")
-SidebarCorner.CornerRadius = UDim.new(0, 10)
-SidebarCorner.Parent = Sidebar
+Sidebar.BorderSizePixel = 0
 
 local ContentArea = Instance.new("Frame")
 ContentArea.Parent = MainFrame
@@ -186,13 +350,15 @@ ContentArea.Position = UDim2.new(0, 140, 0, 50)
 ContentArea.Size = UDim2.new(1, -150, 1, -60)
 
 MinimizeBtn.MouseButton1Click:Connect(function()
-    TweenService:Create(MainFrame, TweenInfo.new(0.3), {Size = UDim2.new(0, 480, 0, 40)}):Play()
+    local tInfo = TweenInfo.new(0.3)
+    TweenService:Create(RGBWrapper, tInfo, {Size = UDim2.new(0, 482, 0, 42)}):Play()
     Sidebar.Visible = false
     ContentArea.Visible = false
 end)
 
 MaximizeBtn.MouseButton1Click:Connect(function()
-    TweenService:Create(MainFrame, TweenInfo.new(0.3), {Size = UDim2.new(0, 480, 0, 360)}):Play()
+    local tInfo = TweenInfo.new(0.3)
+    TweenService:Create(RGBWrapper, tInfo, {Size = UDim2.new(0, 482, 0, 362)}):Play()
     task.wait(0.3)
     Sidebar.Visible = true
     ContentArea.Visible = true
@@ -203,6 +369,7 @@ CloseBtn.MouseButton1Click:Connect(function()
 end)
 
 local Pages = {}
+
 local function SwitchPage(pageName)
     for name, page in pairs(Pages) do
         if name == pageName then
@@ -220,17 +387,17 @@ local function CreateTabBtn(text, pageName, yPos)
     Btn.Position = UDim2.new(0, 0, 0, yPos)
     Btn.Size = UDim2.new(1, 0, 0, 40)
     Btn.Font = Enum.Font.GothamBold
-    Btn.TextColor3 = Color3.fromRGB(150, 150, 150)
+    Btn.TextColor3 = Color3.fromRGB(120, 120, 130)
     Btn.TextSize = 12
     Btn.Text = text
 
     Btn.MouseButton1Click:Connect(function()
         for _, child in pairs(Sidebar:GetChildren()) do
             if child:IsA("TextButton") then
-                child.TextColor3 = Color3.fromRGB(150, 150, 150)
+                child.TextColor3 = Color3.fromRGB(120, 120, 130)
             end
         end
-        Btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+        Btn.TextColor3 = Color3.fromRGB(100, 150, 255)
         SwitchPage(pageName)
     end)
     return Btn
@@ -246,7 +413,7 @@ local function CreatePage(name)
     Page.AutomaticCanvasSize = Enum.AutomaticSize.Y
     Page.Visible = false
     Pages[name] = Page
-
+    
     local UIList = Instance.new("UIListLayout")
     UIList.Parent = Page
     UIList.Padding = UDim.new(0, 8)
@@ -260,18 +427,19 @@ local PageFlings = CreatePage("Flings")
 local PageWorld = CreatePage("World")
 
 SwitchPage("Combat")
-local Tab1 = CreateTabBtn("⚔️ COMBAT", "Combat", 10)
-Tab1.TextColor3 = Color3.fromRGB(255, 255, 255)
-CreateTabBtn("👁️ VISUAL", "Visual", 50)
-CreateTabBtn("🌪️ FLINGS", "Flings", 90)
-CreateTabBtn("🌍 WORLD", "World", 130)
+local Tab1 = CreateTabBtn("COMBAT", "Combat", 10)
+Tab1.TextColor3 = Color3.fromRGB(100, 150, 255)
+CreateTabBtn("VISUAL", "Visual", 50)
+CreateTabBtn("FLINGS", "Flings", 90)
+CreateTabBtn("WORLD", "World", 130)
 
 local function CreateDropdown(page, text)
     local Container = Instance.new("Frame")
     Container.Parent = page
-    Container.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
+    Container.BackgroundColor3 = Color3.fromRGB(20, 21, 26)
     Container.Size = UDim2.new(1, -5, 0, 35)
     Container.ClipsDescendants = true
+    
     local ContCorner = Instance.new("UICorner")
     ContCorner.CornerRadius = UDim.new(0, 6)
     ContCorner.Parent = Container
@@ -282,7 +450,7 @@ local function CreateDropdown(page, text)
     HeaderBtn.Position = UDim2.new(0, 10, 0, 0)
     HeaderBtn.Size = UDim2.new(1, -10, 0, 35)
     HeaderBtn.Font = Enum.Font.GothamBold
-    HeaderBtn.TextColor3 = Color3.fromRGB(255, 200, 0)
+    HeaderBtn.TextColor3 = Color3.fromRGB(180, 180, 190)
     HeaderBtn.TextSize = 12
     HeaderBtn.TextXAlignment = Enum.TextXAlignment.Left
     HeaderBtn.Text = text .. " ▼"
@@ -321,15 +489,20 @@ local function CreateDropdown(page, text)
         isOpen = not isOpen
         updateSize()
     end)
-    UIList:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(updateSize)
+    
+    UIList:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        updateSize()
+    end)
+    
     return ItemsFrame
 end
 
 local function CreateToggle(page, text, stateKey, parentStateKey)
     local Frame = Instance.new("Frame")
     Frame.Parent = page
-    Frame.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+    Frame.BackgroundColor3 = Color3.fromRGB(20, 21, 26)
     Frame.Size = UDim2.new(1, -5, 0, 35)
+    
     local FCorner = Instance.new("UICorner")
     FCorner.CornerRadius = UDim.new(0, 6)
     FCorner.Parent = Frame
@@ -340,7 +513,7 @@ local function CreateToggle(page, text, stateKey, parentStateKey)
     Label.Position = UDim2.new(0, 10, 0, 0)
     Label.Size = UDim2.new(0.7, 0, 1, 0)
     Label.Font = Enum.Font.GothamSemibold
-    Label.TextColor3 = Color3.fromRGB(230, 230, 230)
+    Label.TextColor3 = Color3.fromRGB(220, 220, 220)
     Label.TextSize = 12
     Label.TextXAlignment = Enum.TextXAlignment.Left
     Label.Text = text
@@ -348,18 +521,20 @@ local function CreateToggle(page, text, stateKey, parentStateKey)
     local Button = Instance.new("TextButton")
     Button.Parent = Frame
     Button.Position = UDim2.new(1, -50, 0.5, -8)
-    Button.Size = UDim2.new(0, 40, 0, 16)
-    Button.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+    Button.Size = UDim2.new(0, 36, 0, 16)
+    Button.BackgroundColor3 = Color3.fromRGB(30, 31, 36)
     Button.Text = ""
+    
     local BCorner = Instance.new("UICorner")
     BCorner.CornerRadius = UDim.new(1, 0)
     BCorner.Parent = Button
     
     local Status = Instance.new("Frame")
     Status.Parent = Button
-    Status.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+    Status.BackgroundColor3 = Color3.fromRGB(150, 150, 150)
     Status.Position = UDim2.new(0, 2, 0.5, -6)
     Status.Size = UDim2.new(0, 12, 0, 12)
+    
     local SCorner = Instance.new("UICorner")
     SCorner.CornerRadius = UDim.new(1, 0)
     SCorner.Parent = Status
@@ -367,47 +542,47 @@ local function CreateToggle(page, text, stateKey, parentStateKey)
     local function updateUI()
         if State[stateKey] then
             Status.Position = UDim2.new(1, -14, 0.5, -6)
-            Status.BackgroundColor3 = Color3.fromRGB(50, 255, 100)
+            Status.BackgroundColor3 = Color3.fromRGB(100, 150, 255)
         else
             Status.Position = UDim2.new(0, 2, 0.5, -6)
-            Status.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+            Status.BackgroundColor3 = Color3.fromRGB(150, 150, 150)
         end
     end
 
     RunService.RenderStepped:Connect(function()
         if parentStateKey and not State[parentStateKey] then
-            Label.TextColor3 = Color3.fromRGB(100, 100, 100)
+            Label.TextColor3 = Color3.fromRGB(80, 80, 90)
             Button.AutoButtonColor = false
         else
-            if parentStateKey == nil then
-                if State[stateKey] then
-                    Label.TextColor3 = Color3.fromRGB(0, 255, 150)
-                else
-                    Label.TextColor3 = Color3.fromRGB(230, 230, 230)
-                end
-            else
-                Label.TextColor3 = Color3.fromRGB(230, 230, 230)
-            end
+            Label.TextColor3 = Color3.fromRGB(220, 220, 220)
             Button.AutoButtonColor = true
         end
     end)
-
+    
     updateUI()
 
     Button.MouseButton1Click:Connect(function()
-        if parentStateKey and not State[parentStateKey] then return end
+        if parentStateKey and not State[parentStateKey] then 
+            return 
+        end
         State[stateKey] = not State[stateKey]
         
         local tInfo = TweenInfo.new(0.2)
         local tGoal = {}
         if State[stateKey] then
             tGoal.Position = UDim2.new(1, -14, 0.5, -6)
-            tGoal.BackgroundColor3 = Color3.fromRGB(50, 255, 100)
+            tGoal.BackgroundColor3 = Color3.fromRGB(100, 150, 255)
         else
             tGoal.Position = UDim2.new(0, 2, 0.5, -6)
-            tGoal.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+            tGoal.BackgroundColor3 = Color3.fromRGB(150, 150, 150)
         end
         TweenService:Create(Status, tInfo, tGoal):Play()
+        
+        local onOffText = "Disabled"
+        if State[stateKey] then
+            onOffText = "Enabled"
+        end
+        XayzNotify(text, onOffText, 2)
     end)
     return Frame
 end
@@ -421,14 +596,15 @@ local function CreateButton(page, text, color, callback, parentStateKey)
     Btn.TextColor3 = Color3.fromRGB(255, 255, 255)
     Btn.TextSize = 12
     Btn.Text = text
+    
     local BCorner = Instance.new("UICorner")
     BCorner.CornerRadius = UDim.new(0, 6)
     BCorner.Parent = Btn
     
     RunService.RenderStepped:Connect(function()
         if parentStateKey and not State[parentStateKey] then
-            Btn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-            Btn.TextColor3 = Color3.fromRGB(120, 120, 120)
+            Btn.BackgroundColor3 = Color3.fromRGB(30, 31, 36)
+            Btn.TextColor3 = Color3.fromRGB(80, 80, 90)
         else
             Btn.BackgroundColor3 = color
             Btn.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -436,7 +612,9 @@ local function CreateButton(page, text, color, callback, parentStateKey)
     end)
 
     Btn.MouseButton1Click:Connect(function()
-        if parentStateKey and not State[parentStateKey] then return end
+        if parentStateKey and not State[parentStateKey] then 
+            return 
+        end
         callback(Btn)
     end)
     return Btn
@@ -445,20 +623,21 @@ end
 local function CreateInput(page, text, stateKey, parentStateKey)
     local Box = Instance.new("TextBox")
     Box.Parent = page
-    Box.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+    Box.BackgroundColor3 = Color3.fromRGB(20, 21, 26)
     Box.Size = UDim2.new(1, -5, 0, 35)
     Box.Font = Enum.Font.Gotham
     Box.Text = ""
     Box.PlaceholderText = text
     Box.TextColor3 = Color3.fromRGB(255, 255, 255)
     Box.TextSize = 12
+    
     local BCorner = Instance.new("UICorner")
     BCorner.CornerRadius = UDim.new(0, 6)
     BCorner.Parent = Box
     
     RunService.RenderStepped:Connect(function()
         if parentStateKey and not State[parentStateKey] then
-            Box.TextColor3 = Color3.fromRGB(100, 100, 100)
+            Box.TextColor3 = Color3.fromRGB(80, 80, 90)
             Box.TextEditable = false
         else
             Box.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -467,10 +646,12 @@ local function CreateInput(page, text, stateKey, parentStateKey)
     end)
 
     Box.FocusLost:Connect(function()
-        if parentStateKey and not State[parentStateKey] then return end
+        if parentStateKey and not State[parentStateKey] then 
+            return 
+        end
         local num = tonumber(Box.Text)
-        if num then
-            State[stateKey] = num
+        if num then 
+            State[stateKey] = num 
         end
     end)
     return Box
@@ -479,8 +660,9 @@ end
 local function CreateStepper(page, text, stateKey, parentStateKey)
     local Frame = Instance.new("Frame")
     Frame.Parent = page
-    Frame.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+    Frame.BackgroundColor3 = Color3.fromRGB(20, 21, 26)
     Frame.Size = UDim2.new(1, -5, 0, 35)
+    
     local FCorner = Instance.new("UICorner")
     FCorner.CornerRadius = UDim.new(0, 6)
     FCorner.Parent = Frame
@@ -491,7 +673,7 @@ local function CreateStepper(page, text, stateKey, parentStateKey)
     Label.Position = UDim2.new(0, 10, 0, 0)
     Label.Size = UDim2.new(0.4, 0, 1, 0)
     Label.Font = Enum.Font.GothamSemibold
-    Label.TextColor3 = Color3.fromRGB(230, 230, 230)
+    Label.TextColor3 = Color3.fromRGB(220, 220, 220)
     Label.TextSize = 12
     Label.TextXAlignment = Enum.TextXAlignment.Left
     Label.Text = text
@@ -500,9 +682,10 @@ local function CreateStepper(page, text, stateKey, parentStateKey)
     MinusBtn.Parent = Frame
     MinusBtn.Position = UDim2.new(1, -100, 0.5, -12)
     MinusBtn.Size = UDim2.new(0, 24, 0, 24)
-    MinusBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    MinusBtn.BackgroundColor3 = Color3.fromRGB(35, 36, 42)
     MinusBtn.Text = "-"
     MinusBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    
     local MCorner = Instance.new("UICorner")
     MCorner.CornerRadius = UDim.new(0, 4)
     MCorner.Parent = MinusBtn
@@ -511,9 +694,10 @@ local function CreateStepper(page, text, stateKey, parentStateKey)
     ValueBox.Parent = Frame
     ValueBox.Position = UDim2.new(1, -70, 0.5, -12)
     ValueBox.Size = UDim2.new(0, 34, 0, 24)
-    ValueBox.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+    ValueBox.BackgroundColor3 = Color3.fromRGB(15, 16, 20)
     ValueBox.Text = tostring(State[stateKey])
     ValueBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+    
     local VCorner = Instance.new("UICorner")
     VCorner.CornerRadius = UDim.new(0, 4)
     VCorner.Parent = ValueBox
@@ -522,22 +706,23 @@ local function CreateStepper(page, text, stateKey, parentStateKey)
     PlusBtn.Parent = Frame
     PlusBtn.Position = UDim2.new(1, -30, 0.5, -12)
     PlusBtn.Size = UDim2.new(0, 24, 0, 24)
-    PlusBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    PlusBtn.BackgroundColor3 = Color3.fromRGB(35, 36, 42)
     PlusBtn.Text = "+"
     PlusBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    
     local PCorner = Instance.new("UICorner")
     PCorner.CornerRadius = UDim.new(0, 4)
     PCorner.Parent = PlusBtn
 
     RunService.RenderStepped:Connect(function()
         if parentStateKey and not State[parentStateKey] then
-            Label.TextColor3 = Color3.fromRGB(100, 100, 100)
-            ValueBox.TextColor3 = Color3.fromRGB(100, 100, 100)
+            Label.TextColor3 = Color3.fromRGB(80, 80, 90)
+            ValueBox.TextColor3 = Color3.fromRGB(80, 80, 90)
             ValueBox.TextEditable = false
             MinusBtn.AutoButtonColor = false
             PlusBtn.AutoButtonColor = false
         else
-            Label.TextColor3 = Color3.fromRGB(230, 230, 230)
+            Label.TextColor3 = Color3.fromRGB(220, 220, 220)
             ValueBox.TextColor3 = Color3.fromRGB(255, 255, 255)
             ValueBox.TextEditable = true
             MinusBtn.AutoButtonColor = true
@@ -546,18 +731,26 @@ local function CreateStepper(page, text, stateKey, parentStateKey)
     end)
 
     local function update(newVal)
-        if parentStateKey and not State[parentStateKey] then return end
+        if parentStateKey and not State[parentStateKey] then 
+            return 
+        end
         State[stateKey] = newVal
         ValueBox.Text = tostring(State[stateKey])
     end
     
     MinusBtn.MouseButton1Click:Connect(function() 
-        if parentStateKey and not State[parentStateKey] then return end
-        if State[stateKey] > 1 then update(State[stateKey] - 1) end 
+        if parentStateKey and not State[parentStateKey] then 
+            return 
+        end
+        if State[stateKey] > 1 then 
+            update(State[stateKey] - 1) 
+        end 
     end)
     
     PlusBtn.MouseButton1Click:Connect(function() 
-        if parentStateKey and not State[parentStateKey] then return end
+        if parentStateKey and not State[parentStateKey] then 
+            return 
+        end
         update(State[stateKey] + 1) 
     end)
     
@@ -576,10 +769,10 @@ local function CreateStepper(page, text, stateKey, parentStateKey)
     return Frame
 end
 
-CreateToggle(PageCombat, "Aimbot (Auto Lock)", "Aimbot", nil)
+CreateToggle(PageCombat, "Aimbot", "Aimbot", nil)
 local DropAim = CreateDropdown(PageCombat, "Advanced Aimbot")
 CreateToggle(DropAim, "Show FOV Circle", "Aim_ShowFOV", "Aimbot")
-CreateToggle(DropAim, "Silent Aim (Hitbox)", "SilentAim", "Aimbot")
+CreateToggle(DropAim, "Silent Aim", "SilentAim", "Aimbot")
 CreateStepper(DropAim, "Set FOV Size", "Aim_FOVSize", "Aimbot")
 CreateButton(DropAim, "Switch Target: HEAD/TORSO", Color3.fromRGB(200, 100, 0), function(btn)
     if State.Aim_Part == "Head" then
@@ -590,17 +783,17 @@ CreateButton(DropAim, "Switch Target: HEAD/TORSO", Color3.fromRGB(200, 100, 0), 
     btn.Text = "Target: " .. string.upper(State.Aim_Part)
 end, "Aimbot")
 
-CreateToggle(PageCombat, "ForceField V2 (God Mode)", "ForceField", nil)
-CreateToggle(PageCombat, "Nexus Fly", "Fly", nil)
-CreateStepper(PageCombat, "Set Fly Speed", "FlySpeed", "Fly")
+CreateToggle(PageCombat, "ForceField", "ForceField", nil)
+CreateToggle(PageCombat, "Fly", "Fly", nil)
+CreateStepper(PageCombat, "Fly Speed", "FlySpeed", "Fly")
 
 CreateToggle(PageVisual, "Ultimate ESP (Wallhack)", "ESP", nil)
 local DropESP = CreateDropdown(PageVisual, "Advanced ESP")
 CreateToggle(DropESP, "Show Box", "ESP_Box", "ESP")
 CreateToggle(DropESP, "Show Name & Distance", "ESP_Name", "ESP")
 CreateToggle(DropESP, "Show Healthbar", "ESP_Health", "ESP")
-CreateToggle(DropESP, "Show Tracer", "ESP_Tracer", "ESP")
-CreateToggle(DropESP, "Show Chams", "ESP_Chams", "ESP")
+CreateToggle(DropESP, "Show Tracer (Lines)", "ESP_Tracer", "ESP")
+CreateToggle(DropESP, "Show Chams (Highlight)", "ESP_Chams", "ESP")
 
 CreateInput(PageVisual, "Set POV Camera (1-120)", "POV", nil)
 
@@ -608,7 +801,8 @@ CreateToggle(PageFlings, "Fling V2", "FlingV2", nil)
 CreateInput(PageFlings, "Set Fling Power", "FlingPower", "FlingV2")
 CreateToggle(PageFlings, "Super Touch Fling", "SuperFling", nil)
 
-CreateButton(PageFlings, "Teleport to ALL Players", Color3.fromRGB(0, 150, 255), function()
+CreateButton(PageFlings, "Teleport to ALL Players", Color3.fromRGB(100, 150, 255), function()
+    XayzNotify("Teleporting", "Transporting to all players...", 3)
     for _, p in ipairs(Players:GetPlayers()) do
         if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
             LocalPlayer.Character.HumanoidRootPart.CFrame = p.Character.HumanoidRootPart.CFrame
@@ -618,6 +812,7 @@ CreateButton(PageFlings, "Teleport to ALL Players", Color3.fromRGB(0, 150, 255),
 end, nil)
 
 CreateButton(PageFlings, "Fling ALL Players", Color3.fromRGB(255, 50, 50), function()
+    XayzNotify("Fling All", "Executing mass fling...", 3)
     local oldFling = State.SuperFling
     State.SuperFling = true
     for _, p in ipairs(Players:GetPlayers()) do
@@ -629,9 +824,10 @@ CreateButton(PageFlings, "Fling ALL Players", Color3.fromRGB(255, 50, 50), funct
     State.SuperFling = oldFling
 end, nil)
 
-CreateButton(PageFlings, "Dropkick", Color3.fromRGB(150, 0, 255), function()
-    pcall(function()
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/platinww/CrustyMain/refs/heads/main/universal/DropKick.lua"))()
+CreateButton(PageFlings, "Dropkick", Color3.fromRGB(150, 50, 255), function()
+    XayzNotify("Executing", "Loading Dropkick script...", 2)
+    pcall(function() 
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/platinww/CrustyMain/refs/heads/main/universal/DropKick.lua"))() 
     end)
 end, nil)
 
@@ -643,6 +839,7 @@ local DropRing = CreateDropdown(PageWorld, "Advanced Rings")
 CreateStepper(DropRing, "Ring Speed", "RingSpeed", "SuperRing")
 CreateStepper(DropRing, "Ring Height", "RingHeight", "SuperRing")
 CreateStepper(DropRing, "Ring Distance", "RingDistance", "SuperRing")
+CreateStepper(DropRing, "Attraction Power", "RingAttraction", "SuperRing")
 
 CreateToggle(PageWorld, "Blackhole", "Blackhole", nil)
 CreateStepper(PageWorld, "Blackhole Distance", "BlackholeDistance", "Blackhole")
@@ -655,15 +852,9 @@ local tpwalking = false
 RunService.RenderStepped:Connect(function()
     if State.Fly and not tpwalking then
         local char = LocalPlayer.Character
-        local hum = nil
-        local root = nil
-        local torso = nil
-        
-        if char then
-            hum = char:FindFirstChildWhichIsA("Humanoid")
-            root = char:FindFirstChild("HumanoidRootPart")
-            torso = char:FindFirstChild("Torso") or char:FindFirstChild("UpperTorso")
-        end
+        local hum = char and char:FindFirstChildWhichIsA("Humanoid")
+        local root = char and char:FindFirstChild("HumanoidRootPart")
+        local torso = char and (char:FindFirstChild("Torso") or char:FindFirstChild("UpperTorso"))
         
         if hum and root and torso then
             tpwalking = true
@@ -707,11 +898,7 @@ RunService.RenderStepped:Connect(function()
 
     if State.Fly and tpwalking and FlyBV and FlyBG then
         local char = LocalPlayer.Character
-        local hum = nil
-        if char then
-            hum = char:FindFirstChild("Humanoid")
-        end
-        
+        local hum = char and char:FindFirstChild("Humanoid")
         if hum then
             FlyBG.CFrame = Camera.CFrame
             local moveDir = hum.MoveDirection
@@ -801,15 +988,14 @@ if getnamecallmethod and hookmetamethod then
             local closest = GetClosestPlayer()
             if closest and closest.Character and closest.Character:FindFirstChild(State.Aim_Part) then
                 local targetPos = closest.Character[State.Aim_Part].Position
-                local origin = nil
                 
                 if method == "Raycast" then
-                    origin = args[1]
+                    local origin = args[1]
                     local direction = (targetPos - origin).Unit * 1000
                     args[2] = direction
                     return OldNamecall(self, unpack(args))
                 elseif method == "FindPartOnRayWithIgnoreList" then
-                    origin = args[1].Origin
+                    local origin = args[1].Origin
                     local direction = (targetPos - origin).Unit * 1000
                     args[1] = Ray.new(origin, direction)
                     return OldNamecall(self, unpack(args))
@@ -904,15 +1090,9 @@ RunService.RenderStepped:Connect(function()
         for _, player in pairs(Players:GetPlayers()) do
             if player ~= LocalPlayer then
                 local char = player.Character
-                local root = nil
-                local head = nil
-                local hum = nil
-                
-                if char then
-                    root = char:FindFirstChild("HumanoidRootPart")
-                    head = char:FindFirstChild("Head")
-                    hum = char:FindFirstChild("Humanoid")
-                end
+                local root = char and char:FindFirstChild("HumanoidRootPart")
+                local head = char and char:FindFirstChild("Head")
+                local hum = char and char:FindFirstChild("Humanoid")
                 
                 if char and root and head and hum and hum.Health > 0 then
                     if not ESP_Data[player] then 
@@ -1001,6 +1181,7 @@ RunService.RenderStepped:Connect(function()
 end)
 
 local flingBav = nil
+
 RunService.RenderStepped:Connect(function()
     local char = LocalPlayer.Character
     local hrp = char and char:FindFirstChild("HumanoidRootPart")
@@ -1014,19 +1195,50 @@ RunService.RenderStepped:Connect(function()
                 flingBav.P = math.huge
                 flingBav.Parent = hrp
             end
+            
             if State.SuperFling then
-                flingBav.AngularVelocity = Vector3.new(0, 999999, 0)
+                flingBav.AngularVelocity = Vector3.new(0, 99999999, 0)
             else
                 flingBav.AngularVelocity = Vector3.new(0, State.FlingPower * 100, 0)
             end
-            hrp.RotVelocity = Vector3.new(0, 0, 0) 
         end
     else
         if flingBav then
             flingBav:Destroy()
             flingBav = nil
         end
+        if hrp then
+            hrp.RotVelocity = Vector3.new(0, 0, 0)
+        end
     end
+end)
+
+local AnchorPart = nil
+local AnchorAtt = nil
+
+local function GetAnchorSetup()
+    if not AnchorPart or not AnchorPart.Parent then
+        AnchorPart = Instance.new("Part")
+        AnchorPart.Name = "XayzAnchor"
+        AnchorPart.Anchored = true
+        AnchorPart.CanCollide = false
+        AnchorPart.Transparency = 1
+        AnchorPart.Parent = Workspace
+        
+        AnchorAtt = Instance.new("Attachment")
+        AnchorAtt.Parent = AnchorPart
+    end
+    return AnchorPart, AnchorAtt
+end
+
+task.spawn(function()
+    RunService.Heartbeat:Connect(function()
+        pcall(function()
+            if sethiddenproperty then
+                sethiddenproperty(LocalPlayer, "SimulationRadius", math.huge)
+            end
+        end)
+    end)
 end)
 
 local dinoAnimR15 = Instance.new("Animation")
@@ -1078,36 +1290,74 @@ RunService.Heartbeat:Connect(function()
         end
     else
         local ff = char:FindFirstChild("XayzFF")
-        if ff then ff:Destroy() end
+        if ff then 
+            ff:Destroy() 
+        end
     end
 
-    if State.SuperRing or State.Blackhole then
-        local parts = {}
-        for _, v in ipairs(Workspace:GetDescendants()) do
-            if v:IsA("BasePart") and not v.Anchored and not v:IsDescendantOf(char) then
-                table.insert(parts, v)
+    local anchor, anchorAttachment = GetAnchorSetup()
+
+    if State.Blackhole then
+        anchor.CFrame = hrp.CFrame * CFrame.new(0, 0, -State.BlackholeDistance)
+        for _, v in pairs(Workspace:GetDescendants()) do
+            if v:IsA("Part") and not v.Anchored and not v.Parent:FindFirstChild("Humanoid") and v.Name ~= "Handle" then
+                v.CanCollide = false
+                if not v:FindFirstChild("XayzAlign") then
+                    local att0 = Instance.new("Attachment", v)
+                    local align = Instance.new("AlignPosition", v)
+                    align.Name = "XayzAlign"
+                    align.Attachment0 = att0
+                    align.Attachment1 = anchorAttachment
+                    align.MaxForce = math.huge
+                    align.MaxVelocity = math.huge
+                    align.Responsiveness = 200
+                    
+                    local torque = Instance.new("Torque", v)
+                    torque.Name = "XayzTorque"
+                    torque.Attachment0 = att0
+                    torque.Torque = Vector3.new(100000, 100000, 100000)
+                end
             end
         end
-
-        local count = #parts
-        for i, part in ipairs(parts) do
-            if State.Blackhole then
-                part.CanCollide = false
-                local targetCFrame = hrp.CFrame + (hrp.CFrame.LookVector * State.BlackholeDistance)
-                part.CFrame = targetCFrame
-                part.Velocity = Vector3.new(0, 0, 0)
-            elseif State.SuperRing then
-                part.CanCollide = false
-                local angle = (i / count) * math.pi * 2
-                local timeOffset = tick() * State.RingSpeed
-                local finalAngle = angle + timeOffset
-                
-                local offsetX = math.cos(finalAngle) * State.RingDistance
-                local offsetZ = math.sin(finalAngle) * State.RingDistance
-                
-                local newPos = hrp.Position + Vector3.new(offsetX, State.RingHeight, offsetZ)
-                part.CFrame = CFrame.new(newPos)
-                part.Velocity = Vector3.new(0, 0, 0)
+    elseif State.SuperRing then
+        local unanchoredParts = {}
+        for _, v in pairs(Workspace:GetDescendants()) do
+            if v:IsA("Part") and not v.Anchored and not v.Parent:FindFirstChild("Humanoid") and v.Name ~= "Handle" then
+                table.insert(unanchoredParts, v)
+                if v:FindFirstChild("XayzAlign") then
+                    v:FindFirstChild("XayzAlign"):Destroy()
+                end
+                if v:FindFirstChild("XayzTorque") then
+                    v:FindFirstChild("XayzTorque"):Destroy()
+                end
+                local att = v:FindFirstChildOfClass("Attachment")
+                if att and not att:FindFirstChildOfClass("AlignPosition") then
+                    att:Destroy()
+                end
+            end
+        end
+        
+        local totalParts = #unanchoredParts
+        for i, part in ipairs(unanchoredParts) do
+            local angle = (i / totalParts) * math.pi * 2
+            local newAngle = angle + math.rad(tick() * State.RingSpeed * 10)
+            
+            local targetPos = Vector3.new(
+                hrp.Position.X + math.cos(newAngle) * State.RingDistance,
+                hrp.Position.Y + State.RingHeight,
+                hrp.Position.Z + math.sin(newAngle) * State.RingDistance
+            )
+            
+            local dir = (targetPos - part.Position).Unit
+            part.Velocity = dir * State.RingAttraction
+        end
+    else
+        for _, v in pairs(Workspace:GetDescendants()) do
+            if v:IsA("Part") and v:FindFirstChild("XayzAlign") then
+                v:FindFirstChild("XayzAlign"):Destroy()
+                if v:FindFirstChild("XayzTorque") then
+                    v:FindFirstChild("XayzTorque"):Destroy()
+                end
             end
         end
     end
