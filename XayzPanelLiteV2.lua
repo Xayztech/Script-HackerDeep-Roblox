@@ -1324,8 +1324,8 @@ local Translations = {
         TabExec = "EXECUTOR",
         TabUlt = "ULTIMATE",
         TabMusic = "MUSIC",
-        Fly = "Mobile Fly",
-        FlySpeed = "Fly Speed (Def: 50)",
+        Fly = "Fly",
+        FlySpeed = "Fly Speed",
         InfJump = "Infinity Jump",
         DoubleJump = "Double Jump",
         Wallhop = "Wallhop",
@@ -1411,8 +1411,8 @@ local Translations = {
         TabExec = "EXECUTOR",
         TabUlt = "ULTIMATE",
         TabMusic = "MUSIC",
-        Fly = "Mobile Fly",
-        FlySpeed = "Fly Speed (Def: 50)",
+        Fly = "Fly",
+        FlySpeed = "Fly Speed",
         InfJump = "Infinity Jump",
         DoubleJump = "Double Jump",
         Wallhop = "Wallhop",
@@ -5144,7 +5144,7 @@ end, ColBlk)
 
 CreateButton(PageTools, "ExecXayz", function()
     pcall(function()
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/Xayztech/Script-HackerDeep-Roblox/refs/heads/main/Xayz-EXV2.lua"))()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/Xayztech/Script-HackerDeep-Roblox/refs/heads/main/XayzPanelLiteX.lua"))()
     end)
     ShowNotification(GetString("NotifExec"), "ESP + AIM")
 end, ColBlk)
