@@ -38,6 +38,9 @@ local State = {
     FlingPower = 50, 
     SuperFling = false,
     ForceField = false,
+    HealLoop = false,
+    GodModeV4 = false,
+    WideAvatar = 1,
     
     DinoAnim = false,
     PunchAnim = false,
@@ -48,15 +51,33 @@ local State = {
     FakeKiller = false,
     
     SuperRing = false,
-    RingSpeed = 20,
+    RingSpeed = 40,
     RingHeight = 5,
     RingDistance = 50,
-    RingAttraction = 2000,
+    RingAttraction = 1000,
     Blackhole = false,
     BlackholeRadius = 30,
     BlackholeSpeed = 999,
-    HDAdmin = false
+    
+    MainColor = Color3.fromRGB(138, 43, 226),
+    RGBGaming = false,
+    
+    VM_Power = false,
+    VM_UserAgent = "Windows"
 }
+
+local ConfigFileName = "XayzConfig.json"
+pcall(function()
+    if readfile and isfile and isfile(ConfigFileName) then
+        local data = HttpService:JSONDecode(readfile(ConfigFileName))
+        if data.R and data.G and data.B then
+            State.MainColor = Color3.fromRGB(data.R, data.G, data.B)
+        end
+        if data.RGBGaming ~= nil then
+            State.RGBGaming = data.RGBGaming
+        end
+    end
+end)
 
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "XayzExV3X"
@@ -139,7 +160,7 @@ local function XayzNotify(title, text, duration)
     NotifFrame.BackgroundTransparency = State.PerformanceMode and 0 or 1
     
     local NotifStroke = Instance.new("UIStroke")
-    NotifStroke.Color = Color3.fromRGB(138, 43, 226)
+    NotifStroke.Color = State.MainColor
     NotifStroke.Thickness = 1
     NotifStroke.Parent = NotifFrame
 
@@ -149,7 +170,7 @@ local function XayzNotify(title, text, duration)
     
     local Accent = Instance.new("Frame")
     Accent.Parent = NotifFrame
-    Accent.BackgroundColor3 = Color3.fromRGB(138, 43, 226)
+    Accent.BackgroundColor3 = State.MainColor
     Accent.Size = UDim2.new(0, 4, 1, 0)
     
     local AccentCorner = Instance.new("UICorner")
@@ -194,7 +215,7 @@ local function XayzNotify(title, text, duration)
     
     local ProgFill = Instance.new("Frame")
     ProgFill.Parent = ProgBg
-    ProgFill.BackgroundColor3 = Color3.fromRGB(138, 43, 226)
+    ProgFill.BackgroundColor3 = State.MainColor
     ProgFill.Size = UDim2.new(1, 0, 1, 0)
     ProgFill.BackgroundTransparency = State.PerformanceMode and 0 or 1
     
@@ -245,21 +266,27 @@ MainWrapperCorner.Parent = MainWrapper
 
 local MainStroke = Instance.new("UIStroke")
 MainStroke.Parent = MainWrapper
-MainStroke.Color = Color3.fromRGB(138, 43, 226)
+MainStroke.Color = State.MainColor
 MainStroke.Thickness = 2
 
 local RGBGradient = Instance.new("UIGradient")
 RGBGradient.Parent = MainStroke
 RGBGradient.Color = ColorSequence.new{
-    ColorSequenceKeypoint.new(0.00, Color3.fromRGB(138, 43, 226)),
-    ColorSequenceKeypoint.new(0.50, Color3.fromRGB(75, 100, 255)),
-    ColorSequenceKeypoint.new(1.00, Color3.fromRGB(138, 43, 226))
+    ColorSequenceKeypoint.new(0.00, State.MainColor),
+    ColorSequenceKeypoint.new(0.50, Color3.fromRGB(255, 255, 255)),
+    ColorSequenceKeypoint.new(1.00, State.MainColor)
 }
 
 RunService.RenderStepped:Connect(function()
     if not State.PerformanceMode then
         RGBGradient.Rotation = (RGBGradient.Rotation + 2) % 360
     end
+    if State.RGBGaming then
+        local hue = tick() % 5 / 5
+        local color = Color3.fromHSV(hue, 1, 1)
+        State.MainColor = color
+    end
+    MainStroke.Color = State.MainColor
 end)
 
 local LoadFrame = Instance.new("Frame")
@@ -287,7 +314,7 @@ local TextGradient = Instance.new("UIGradient")
 TextGradient.Parent = AuraText
 TextGradient.Color = ColorSequence.new{
     ColorSequenceKeypoint.new(0.0, Color3.fromRGB(50, 50, 50)),
-    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(138, 43, 226)),
+    ColorSequenceKeypoint.new(0.5, State.MainColor),
     ColorSequenceKeypoint.new(1.0, Color3.fromRGB(50, 50, 50))
 }
 TextGradient.Offset = Vector2.new(-1, 0)
@@ -306,7 +333,7 @@ SpinnerCorner.Parent = Spinner
 local SpinnerStroke = Instance.new("UIStroke")
 SpinnerStroke.Parent = Spinner
 SpinnerStroke.Thickness = 4
-SpinnerStroke.Color = Color3.fromRGB(100, 150, 255)
+SpinnerStroke.Color = State.MainColor
 SpinnerStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 
 local SpinnerGradient = Instance.new("UIGradient")
@@ -326,26 +353,28 @@ task.spawn(function()
             t = t + 0.05
             Spinner.Rotation = Spinner.Rotation + 10
             TextGradient.Offset = Vector2.new(math.sin(t), 0)
+            SpinnerStroke.Color = State.MainColor
+            TextGradient.Color = ColorSequence.new{
+                ColorSequenceKeypoint.new(0.0, Color3.fromRGB(50, 50, 50)),
+                ColorSequenceKeypoint.new(0.5, State.MainColor),
+                ColorSequenceKeypoint.new(1.0, Color3.fromRGB(50, 50, 50))
+            }
             task.wait(0.03)
         end
     end)
     
-    task.wait(5)
+    task.wait(10)
     loading = false
     
     local fadeOut = TweenInfo.new(0.5)
     TweenService:Create(AuraText, fadeOut, {TextTransparency = 1}):Play()
-    
     TweenService:Create(SpinnerStroke, fadeOut, {Transparency = 1}):Play()
-    
     task.wait(0.5)
     TweenService:Create(LoadFrame, fadeOut, {BackgroundTransparency = 1}):Play()
     task.wait(0.5)
     LoadFrame.Visible = false
     
-    if XayzNotify then
-        XayzNotify("System Online", "Welcome to Xayz Panel LiteX", 4)
-    end
+    XayzNotify("System Online", "Welcome to Xayz Panel LiteX", 4)
 end)
 
 local Header = Instance.new("Frame")
@@ -367,7 +396,7 @@ TitleLabel.Font = Enum.Font.GothamBold
 TitleLabel.TextColor3 = Color3.fromRGB(200, 220, 255)
 TitleLabel.TextSize = 14
 TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
-TitleLabel.Text = "🖥️ Xayz Panel LiteX"
+TitleLabel.Text = "XAYZ LITE X"
 
 local MinimizeBtn = Instance.new("TextButton")
 MinimizeBtn.Parent = Header
@@ -405,16 +434,22 @@ local CloseCorner = Instance.new("UICorner")
 CloseCorner.CornerRadius = UDim.new(0, 6)
 CloseCorner.Parent = CloseBtn
 
-local Sidebar = Instance.new("Frame")
+local Sidebar = Instance.new("ScrollingFrame")
 Sidebar.Parent = MainWrapper
 Sidebar.BackgroundColor3 = Color3.fromRGB(15, 17, 26)
 Sidebar.Position = UDim2.new(0, 0, 0, 40)
 Sidebar.Size = UDim2.new(0, 140, 1, -40)
 Sidebar.BorderSizePixel = 0
+Sidebar.ScrollBarThickness = 2
+Sidebar.AutomaticCanvasSize = Enum.AutomaticSize.Y
 
 local SidebarCorner = Instance.new("UICorner")
 SidebarCorner.CornerRadius = UDim.new(0, 8)
 SidebarCorner.Parent = Sidebar
+
+local SidebarList = Instance.new("UIListLayout")
+SidebarList.Parent = Sidebar
+SidebarList.SortOrder = Enum.SortOrder.LayoutOrder
 
 local ContentArea = Instance.new("Frame")
 ContentArea.Parent = MainWrapper
@@ -461,11 +496,10 @@ local function SwitchPage(pageName)
     end
 end
 
-local function CreateTabBtn(text, pageName, yPos)
+local function CreateTabBtn(text, pageName)
     local Btn = Instance.new("TextButton")
     Btn.Parent = Sidebar
     Btn.BackgroundTransparency = 1
-    Btn.Position = UDim2.new(0, 0, 0, yPos)
     Btn.Size = UDim2.new(1, 0, 0, 35)
     Btn.Font = Enum.Font.GothamBold
     Btn.TextColor3 = Color3.fromRGB(120, 130, 150)
@@ -478,9 +512,16 @@ local function CreateTabBtn(text, pageName, yPos)
                 child.TextColor3 = Color3.fromRGB(120, 130, 150)
             end
         end
-        Btn.TextColor3 = Color3.fromRGB(138, 43, 226)
+        Btn.TextColor3 = State.MainColor
         SwitchPage(pageName)
     end)
+    
+    RunService.RenderStepped:Connect(function()
+        if Pages[pageName].Visible then
+            Btn.TextColor3 = State.MainColor
+        end
+    end)
+    
     return Btn
 end
 
@@ -506,17 +547,21 @@ local PageCombat = CreatePage("Combat")
 local PageVisual = CreatePage("Visual")
 local PageFlings = CreatePage("Flings")
 local PageWorld = CreatePage("World")
-local PagePlayers = CreatePage("Players")
+local PageAdmin = CreatePage("Admin")
+local PageVM = CreatePage("VirtualMachine")
+local PageCustomUI = CreatePage("CustomUI")
 local PageSettings = CreatePage("Settings")
 
 SwitchPage("Combat")
-local Tab1 = CreateTabBtn("⚔️ COMBAT", "Combat", 10)
-Tab1.TextColor3 = Color3.fromRGB(138, 43, 226)
-CreateTabBtn("👁️ VISUAL", "Visual", 50)
-CreateTabBtn("🌪️ FLINGS", "Flings", 90)
-CreateTabBtn("🌍 WORLD", "World", 130)
-CreateTabBtn("👥 PLAYERS", "Players", 170)
-CreateTabBtn("⚙️ SETTINGS", "Settings", 260)
+local Tab1 = CreateTabBtn("⚔️ COMBAT", "Combat")
+Tab1.TextColor3 = State.MainColor
+CreateTabBtn("👁️ VISUAL", "Visual")
+CreateTabBtn("🌪️ FLINGS", "Flings")
+CreateTabBtn("🌍 WORLD", "World")
+CreateTabBtn("🛡️ ADMIN", "Admin")
+CreateTabBtn("🌐 VM", "VirtualMachine")
+CreateTabBtn("🎨 CUSTOM UI", "CustomUI")
+CreateTabBtn("⚙️ SETTINGS", "Settings")
 
 local function CreateDualSwitch(page, text, stateKey)
     local Frame = Instance.new("Frame")
@@ -552,7 +597,6 @@ local function CreateDualSwitch(page, text, stateKey)
     OnBtn.Text = "ON"
     OnBtn.Font = Enum.Font.GothamBold
     OnBtn.TextColor3 = State[stateKey] and Color3.fromRGB(0, 0, 0) or Color3.fromRGB(200, 200, 200)
-    
     local OnCorner = Instance.new("UICorner")
     OnCorner.CornerRadius = UDim.new(0, 4)
     OnCorner.Parent = OnBtn
@@ -565,7 +609,6 @@ local function CreateDualSwitch(page, text, stateKey)
     OffBtn.Text = "OFF"
     OffBtn.Font = Enum.Font.GothamBold
     OffBtn.TextColor3 = not State[stateKey] and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(200, 200, 200)
-    
     local OffCorner = Instance.new("UICorner")
     OffCorner.CornerRadius = UDim.new(0, 4)
     OffCorner.Parent = OffBtn
@@ -612,7 +655,7 @@ local function CreateDropdown(page, text)
     HeaderBtn.Position = UDim2.new(0, 10, 0, 0)
     HeaderBtn.Size = UDim2.new(1, -10, 0, 35)
     HeaderBtn.Font = Enum.Font.GothamBold
-    HeaderBtn.TextColor3 = Color3.fromRGB(138, 43, 226)
+    HeaderBtn.TextColor3 = State.MainColor
     HeaderBtn.TextSize = 12
     HeaderBtn.TextXAlignment = Enum.TextXAlignment.Left
     HeaderBtn.Text = text .. " ▼"
@@ -656,6 +699,10 @@ local function CreateDropdown(page, text)
         updateSize()
     end)
     
+    RunService.RenderStepped:Connect(function()
+        HeaderBtn.TextColor3 = State.MainColor
+    end)
+    
     return ItemsFrame
 end
 
@@ -691,7 +738,6 @@ local function CreateToggle(page, text, stateKey, parentStateKey)
     Button.Size = UDim2.new(0, 36, 0, 16)
     Button.BackgroundColor3 = Color3.fromRGB(15, 17, 22)
     Button.Text = ""
-    
     local BCorner = Instance.new("UICorner")
     BCorner.CornerRadius = UDim.new(1, 0)
     BCorner.Parent = Button
@@ -701,7 +747,6 @@ local function CreateToggle(page, text, stateKey, parentStateKey)
     Status.BackgroundColor3 = Color3.fromRGB(100, 100, 120)
     Status.Position = UDim2.new(0, 2, 0.5, -6)
     Status.Size = UDim2.new(0, 12, 0, 12)
-    
     local SCorner = Instance.new("UICorner")
     SCorner.CornerRadius = UDim.new(1, 0)
     SCorner.Parent = Status
@@ -709,7 +754,7 @@ local function CreateToggle(page, text, stateKey, parentStateKey)
     local function updateUI()
         if State[stateKey] then
             Status.Position = UDim2.new(1, -14, 0.5, -6)
-            Status.BackgroundColor3 = Color3.fromRGB(138, 43, 226)
+            Status.BackgroundColor3 = State.MainColor
         else
             Status.Position = UDim2.new(0, 2, 0.5, -6)
             Status.BackgroundColor3 = Color3.fromRGB(100, 100, 120)
@@ -723,6 +768,9 @@ local function CreateToggle(page, text, stateKey, parentStateKey)
         else
             Label.TextColor3 = Color3.fromRGB(220, 220, 220)
             Button.AutoButtonColor = true
+        end
+        if State[stateKey] then
+            Status.BackgroundColor3 = State.MainColor
         end
     end)
     
@@ -739,7 +787,7 @@ local function CreateToggle(page, text, stateKey, parentStateKey)
             local tGoal = {}
             if State[stateKey] then
                 tGoal.Position = UDim2.new(1, -14, 0.5, -6)
-                tGoal.BackgroundColor3 = Color3.fromRGB(138, 43, 226)
+                tGoal.BackgroundColor3 = State.MainColor
             else
                 tGoal.Position = UDim2.new(0, 2, 0.5, -6)
                 tGoal.BackgroundColor3 = Color3.fromRGB(100, 100, 120)
@@ -748,18 +796,12 @@ local function CreateToggle(page, text, stateKey, parentStateKey)
         else
             if State[stateKey] then
                 Status.Position = UDim2.new(1, -14, 0.5, -6)
-                Status.BackgroundColor3 = Color3.fromRGB(138, 43, 226)
+                Status.BackgroundColor3 = State.MainColor
             else
                 Status.Position = UDim2.new(0, 2, 0.5, -6)
                 Status.BackgroundColor3 = Color3.fromRGB(100, 100, 120)
             end
         end
-        
-        local onOffText = "Disabled"
-        if State[stateKey] then
-            onOffText = "Enabled"
-        end
-        XayzNotify(text, onOffText, 2)
     end)
     return Frame
 end
@@ -783,7 +825,11 @@ local function CreateButton(page, text, color, callback, parentStateKey)
             Btn.BackgroundColor3 = Color3.fromRGB(30, 31, 36)
             Btn.TextColor3 = Color3.fromRGB(80, 80, 90)
         else
-            Btn.BackgroundColor3 = color
+            if color == "Main" then
+                Btn.BackgroundColor3 = State.MainColor
+            else
+                Btn.BackgroundColor3 = color
+            end
             Btn.TextColor3 = Color3.fromRGB(255, 255, 255)
         end
     end)
@@ -800,7 +846,7 @@ end
 local function CreateInput(page, text, stateKey, parentStateKey)
     local Box = Instance.new("TextBox")
     Box.Parent = page
-    Box.BackgroundColor3 = Color3.fromRGB(15, 17, 22)
+    Box.BackgroundColor3 = Color3.fromRGB(20, 21, 26)
     Box.Size = UDim2.new(1, -5, 0, 35)
     Box.Font = Enum.Font.Gotham
     Box.Text = ""
@@ -812,7 +858,7 @@ local function CreateInput(page, text, stateKey, parentStateKey)
     FStroke.Parent = Box
     FStroke.Color = Color3.fromRGB(40, 45, 60)
     FStroke.Thickness = 1
-
+    
     local BCorner = Instance.new("UICorner")
     BCorner.CornerRadius = UDim.new(0, 6)
     BCorner.Parent = Box
@@ -839,10 +885,10 @@ local function CreateInput(page, text, stateKey, parentStateKey)
     return Box
 end
 
-local function CreateStepper(page, text, stateKey, parentStateKey)
+local function CreateStepper(page, text, stateKey, parentStateKey, isFloat)
     local Frame = Instance.new("Frame")
     Frame.Parent = page
-    Frame.BackgroundColor3 = Color3.fromRGB(20, 22, 30)
+    Frame.BackgroundColor3 = Color3.fromRGB(20, 21, 26)
     Frame.Size = UDim2.new(1, -5, 0, 35)
     
     local FStroke = Instance.new("UIStroke")
@@ -872,7 +918,6 @@ local function CreateStepper(page, text, stateKey, parentStateKey)
     MinusBtn.BackgroundColor3 = Color3.fromRGB(35, 40, 55)
     MinusBtn.Text = "-"
     MinusBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    
     local MCorner = Instance.new("UICorner")
     MCorner.CornerRadius = UDim.new(0, 4)
     MCorner.Parent = MinusBtn
@@ -884,7 +929,6 @@ local function CreateStepper(page, text, stateKey, parentStateKey)
     ValueBox.BackgroundColor3 = Color3.fromRGB(12, 14, 20)
     ValueBox.Text = tostring(State[stateKey])
     ValueBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-    
     local VCorner = Instance.new("UICorner")
     VCorner.CornerRadius = UDim.new(0, 4)
     VCorner.Parent = ValueBox
@@ -896,7 +940,6 @@ local function CreateStepper(page, text, stateKey, parentStateKey)
     PlusBtn.BackgroundColor3 = Color3.fromRGB(35, 40, 55)
     PlusBtn.Text = "+"
     PlusBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    
     local PCorner = Instance.new("UICorner")
     PCorner.CornerRadius = UDim.new(0, 4)
     PCorner.Parent = PlusBtn
@@ -917,6 +960,8 @@ local function CreateStepper(page, text, stateKey, parentStateKey)
         end
     end)
 
+    local stepVal = isFloat and 0.5 or 1
+
     local function update(newVal)
         if parentStateKey and not State[parentStateKey] then 
             return 
@@ -929,16 +974,14 @@ local function CreateStepper(page, text, stateKey, parentStateKey)
         if parentStateKey and not State[parentStateKey] then 
             return 
         end
-        if State[stateKey] > 1 then 
-            update(State[stateKey] - 1) 
-        end 
+        update(State[stateKey] - stepVal) 
     end)
     
     PlusBtn.MouseButton1Click:Connect(function() 
         if parentStateKey and not State[parentStateKey] then 
             return 
         end
-        update(State[stateKey] + 1) 
+        update(State[stateKey] + stepVal) 
     end)
     
     ValueBox.FocusLost:Connect(function()
@@ -947,22 +990,20 @@ local function CreateStepper(page, text, stateKey, parentStateKey)
             return 
         end
         local num = tonumber(ValueBox.Text)
-        if num and num >= 1 then 
+        if num then 
             update(num) 
         else 
-            update(1) 
+            update(isFloat and 0.5 or 1) 
         end
     end)
     return Frame
 end
 
-CreateDualSwitch(PageSettings, "Performance Mode", "PerformanceMode")
-
 CreateToggle(PageCombat, "Aimbot", "Aimbot", nil)
 local DropAim = CreateDropdown(PageCombat, "Advanced Aimbot")
 CreateToggle(DropAim, "Show FOV Circle", "Aim_ShowFOV", "Aimbot")
 CreateToggle(DropAim, "Silent Aim", "SilentAim", "Aimbot")
-CreateStepper(DropAim, "Set FOV Size", "Aim_FOVSize", "Aimbot")
+CreateStepper(DropAim, "Set FOV Size", "Aim_FOVSize", "Aimbot", false)
 CreateButton(DropAim, "Switch Target: HEAD/TORSO", Color3.fromRGB(200, 100, 0), function(btn)
     if State.Aim_Part == "Head" then
         State.Aim_Part = "HumanoidRootPart"
@@ -972,9 +1013,12 @@ CreateButton(DropAim, "Switch Target: HEAD/TORSO", Color3.fromRGB(200, 100, 0), 
     btn.Text = "Target: " .. string.upper(State.Aim_Part)
 end, "Aimbot")
 
+CreateToggle(PageCombat, "Heal Loop", "HealLoop", nil)
+CreateToggle(PageCombat, "God Mode", "GodModeV4", nil)
 CreateToggle(PageCombat, "ForceField", "ForceField", nil)
+
 CreateToggle(PageCombat, "Fly", "Fly", nil)
-CreateStepper(PageCombat, "Fly Speed", "FlySpeed", "Fly")
+CreateStepper(PageCombat, "Fly Speed", "FlySpeed", "Fly", false)
 
 CreateToggle(PageVisual, "ESP", "ESP", nil)
 local DropESP = CreateDropdown(PageVisual, "Advanced ESP")
@@ -983,15 +1027,14 @@ CreateToggle(DropESP, "Show Name & Distance", "ESP_Name", "ESP")
 CreateToggle(DropESP, "Show Healthbar", "ESP_Health", "ESP")
 CreateToggle(DropESP, "Show Tracer", "ESP_Tracer", "ESP")
 CreateToggle(DropESP, "Show Chams", "ESP_Chams", "ESP")
-
 CreateInput(PageVisual, "Set POV Camera (1-120)", "POV", nil)
 
 CreateToggle(PageFlings, "Fling", "FlingV2", nil)
 CreateToggle(PageFlings, "Fling V2", "FlingV3", nil)
 CreateInput(PageFlings, "Set Fling Power (Def: 50)", "FlingPower", nil)
-CreateToggle(PageFlings, "Super Touch Fling (Body Aura)", "SuperFling", nil)
+CreateToggle(PageFlings, "Super Touch Fling", "SuperFling", nil)
 
-CreateButton(PageFlings, "Teleport to ALL Players", Color3.fromRGB(100, 150, 255), function()
+CreateButton(PageFlings, "Teleport to ALL Players", "Main", function()
     XayzNotify("Teleporting", "Transporting to all players...", 3)
     for _, p in ipairs(Players:GetPlayers()) do
         if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
@@ -1024,52 +1067,32 @@ end, nil)
 CreateToggle(PageFlings, "Dino Animation", "DinoAnim", nil)
 CreateToggle(PageFlings, "Punch Animation", "PunchAnim", nil)
 
-CreateToggle(PageFlings, "Shaking Hands", "ArmAnim", nil)
+CreateToggle(PageFlings, "Shake Arm", "ArmAnim", nil)
 local DropArm = CreateDropdown(PageFlings, "Advanced Arm Mover")
-CreateStepper(DropArm, "Arm Speed", "ArmSpeed", "ArmAnim")
-CreateStepper(DropArm, "Arm Intensity", "ArmIntensity", "ArmAnim")
+CreateStepper(DropArm, "Arm Speed", "ArmSpeed", "ArmAnim", false)
+CreateStepper(DropArm, "Arm Intensity", "ArmIntensity", "ArmAnim", true)
 
 CreateToggle(PageFlings, "married/gay", "FakeKiller", nil)
 CreateToggle(PageFlings, "Show penis", "ShowStick", "FakeKiller")
 CreateButton(PageFlings, "release sperm fluid", Color3.fromRGB(200, 200, 200), function()
     local char = LocalPlayer.Character
-    if char and char:FindFirstChild("HumanoidRootPart") and myTool and myTool:FindFirstChild("Tip") then
+    local myToolFind = char and char:FindFirstChild("StickWood")
+    if char and char:FindFirstChild("HumanoidRootPart") and myToolFind and myToolFind:FindFirstChild("Tip") then
         for i = 1, 50 do
             local drop = Instance.new("Part", Workspace)
             drop.Size = Vector3.new(0.2, 0.2, 0.2)
             drop.Color = Color3.fromRGB(255, 255, 255)
             drop.Material = Enum.Material.Neon
             drop.Shape = Enum.PartType.Ball
-            drop.Position = myTool.Tip.Position
-            drop.Velocity = (myTool.Tip.CFrame.LookVector * 50) + Vector3.new(0, 20, 0)
+            drop.Position = myToolFind.Tip.Position
+            drop.Velocity = (myToolFind.Tip.CFrame.LookVector * 50) + Vector3.new(0, 20, 0)
             game:GetService("Debris"):AddItem(drop, 2)
             task.wait(0.05)
         end
     end
 end, "FakeKiller")
 
-local mouse = LocalPlayer:GetMouse()
-local targetPlayer = nil
-
-mouse.Button1Down:Connect(function()
-    if State.FakeKiller then
-        local target = mouse.Target
-        if target and target.Parent:FindFirstChild("Humanoid") then
-            targetPlayer = target.Parent
-            
-            task.spawn(function()
-                while targetPlayer and State.FakeKiller do
-                    char:SetPrimaryPartCFrame(targetPlayer.PrimaryPartCFrame * CFrame.new(0, 0, 1))
-            task.wait(0.1)
-            char:SetPrimaryPartCFrame(targetPlayer.PrimaryPartCFrame * CFrame.new(0, 0, 0.5))
-            task.wait(0.1)
-                end
-            end)
-        end
-    end
-end)
-
-CreateButton(PageWorld, "Get Obliterator Tool", Color3.fromRGB(138, 43, 226), function()
+CreateButton(PageWorld, "Obliterator Tool", Color3.fromRGB(138, 43, 226), function()
     local backpack = LocalPlayer:WaitForChild("Backpack")
     local tool1 = Instance.new("Tool")
     tool1.Name = "OBLITERATOR"
@@ -1093,56 +1116,273 @@ CreateButton(PageWorld, "Get Obliterator Tool", Color3.fromRGB(138, 43, 226), fu
     XayzNotify("Obliterator", "Tool added to Backpack!", 2)
 end, nil)
 
-CreateButton(PageWorld, "Get F3X (Btools)", Color3.fromRGB(0, 200, 100), function()
+CreateButton(PageWorld, "Switch to R6", Color3.fromRGB(0, 150, 200), function()
+    local char = LocalPlayer.Character
+    if char and char:FindFirstChildOfClass("Humanoid") then
+        if char:FindFirstChildOfClass("Humanoid").RigType == Enum.HumanoidRigType.R15 then
+            local desc = Players:GetHumanoidDescriptionFromUserId(LocalPlayer.UserId)
+            local model = Players:CreateHumanoidModelFromDescription(desc, Enum.HumanoidRigType.R6)
+            model:PivotTo(char:GetPivot())
+            model.Name = LocalPlayer.Name
+            LocalPlayer.Character = model
+            model.Parent = Workspace
+        end
+    end
+end, nil)
+
+CreateButton(PageWorld, "Switch to R15", Color3.fromRGB(0, 200, 150), function()
+    local char = LocalPlayer.Character
+    if char and char:FindFirstChildOfClass("Humanoid") then
+        if char:FindFirstChildOfClass("Humanoid").RigType == Enum.HumanoidRigType.R6 then
+            local desc = Players:GetHumanoidDescriptionFromUserId(LocalPlayer.UserId)
+            local model = Players:CreateHumanoidModelFromDescription(desc, Enum.HumanoidRigType.R15)
+            model:PivotTo(char:GetPivot())
+            model.Name = LocalPlayer.Name
+            LocalPlayer.Character = model
+            model.Parent = Workspace
+        end
+    end
+end, nil)
+
+CreateStepper(PageWorld, "Wide Avatar", "WideAvatar", nil, true)
+
+CreateToggle(PageWorld, "Super Rings", "SuperRing", nil)
+local DropRing = CreateDropdown(PageWorld, "Advanced Rings")
+CreateStepper(DropRing, "Ring Speed", "RingSpeed", "SuperRing", false)
+CreateStepper(DropRing, "Ring Height", "RingHeight", "SuperRing", false)
+CreateStepper(DropRing, "Ring Distance", "RingDistance", "SuperRing", false)
+CreateStepper(DropRing, "Attraction Power", "RingAttraction", "SuperRing", false)
+
+CreateToggle(PageWorld, "Blackhole", "Blackhole", nil)
+local DropBH = CreateDropdown(PageWorld, "Advanced Blackhole")
+CreateStepper(DropBH, "Blackhole Distance", "BlackholeDistance", "Blackhole", false)
+CreateStepper(DropBH, "Blackhole Radius", "BlackholeRadius", "Blackhole", false)
+CreateStepper(DropBH, "Blackhole Speed", "BlackholeSpeed", "Blackhole", false)
+
+CreateButton(PageAdmin, "Get F3X", "Main", function()
     pcall(function()
-        loadstring(game:GetObjects("rbxassetid://22484922")[1].Source)()
+        local importFunc = getgenv and getgenv().import or import
+        if importFunc then importFunc(12158566951)(LocalPlayer.Name) end
     end)
     XayzNotify("F3X Loaded", "Check your inventory.", 2)
 end, nil)
 
-CreateToggle(PageWorld, "Become HD Admin Owner", "HDAdmin", nil)
-
-CreateToggle(PageWorld, "Super Rings", "SuperRing", nil)
-local DropRing = CreateDropdown(PageWorld, "Advanced Rings")
-CreateStepper(DropRing, "Ring Speed", "RingSpeed", "SuperRing")
-CreateStepper(DropRing, "Ring Height", "RingHeight", "SuperRing")
-CreateStepper(DropRing, "Ring Distance", "RingDistance", "SuperRing")
-
-CreateToggle(PageWorld, "Blackhole", "Blackhole", nil)
-local DropBH = CreateDropdown(PageWorld, "Advanced Blackhole")
-CreateStepper(DropBH, "Blackhole Distance", "BlackholeDistance", "Blackhole")
-CreateStepper(DropBH, "Blackhole Radius", "BlackholeRadius", "Blackhole")
-CreateStepper(DropBH, "Blackhole Speed", "BlackholeSpeed", "Blackhole")
-
-local PlayerListContainer = CreateDropdown(PagePlayers, "Server Players List")
-
-local function RefreshPlayerList()
-    for _, child in pairs(PlayerListContainer:GetChildren()) do
-        if child:IsA("TextLabel") then
-            child:Destroy()
-        end
-    end
-    for _, p in pairs(Players:GetPlayers()) do
-        local PLabel = Instance.new("TextLabel")
-        PLabel.Parent = PlayerListContainer
-        PLabel.BackgroundColor3 = Color3.fromRGB(30, 32, 45)
-        PLabel.Size = UDim2.new(1, -5, 0, 30)
-        PLabel.Font = Enum.Font.Gotham
-        PLabel.TextColor3 = Color3.fromRGB(200, 220, 255)
-        PLabel.TextSize = 12
-        PLabel.Text = "👤 " .. p.DisplayName .. " (@" .. p.Name .. ")"
-        
-        local PCorner = Instance.new("UICorner")
-        PCorner.CornerRadius = UDim.new(0, 4)
-        PCorner.Parent = PLabel
-    end
-end
-CreateButton(PagePlayers, "Refresh List", Color3.fromRGB(100, 150, 255), function()
-    RefreshPlayerList()
-    XayzNotify("Player List", "List Refreshed", 2)
+CreateButton(PageAdmin, "Get Btools", "Main", function()
+    pcall(function()
+        local importFunc = getgenv and getgenv().import or import
+        if importFunc then importFunc(16530393933)(LocalPlayer.Name) end
+    end)
+    XayzNotify("Btools Loaded", "Check your inventory.", 2)
 end, nil)
-RefreshPlayerList()
 
+local function SetHDRank(rankId, rankName)
+    pcall(function()
+        if _G.HDAdminMain then
+            _G.HDAdminMain:GetModule("cf"):SetRank(LocalPlayer, game.CreatorId, rankId, "Perm")
+        end
+    end)
+    XayzNotify("HD Admin", "Rank set to " .. rankName, 2)
+end
+
+local DropHD = CreateDropdown(PageAdmin, "HD Admin Roles")
+CreateButton(DropHD, "Add HD Admin", Color3.fromRGB(50, 50, 50), function()
+    pcall(function()
+        local importFunc = getgenv and getgenv().import or import
+        if importFunc then importFunc(4893870373).load(LocalPlayer.Name) end
+    end)
+end, nil)
+CreateButton(DropHD, "Rankless (0)", Color3.fromRGB(80, 80, 80), function() SetHDRank(0, "Rankless") end, nil)
+CreateButton(DropHD, "VIP (1)", Color3.fromRGB(200, 200, 0), function() SetHDRank(1, "VIP") end, nil)
+CreateButton(DropHD, "Mod (2)", Color3.fromRGB(0, 200, 0), function() SetHDRank(2, "Mod") end, nil)
+CreateButton(DropHD, "Admin (3)", Color3.fromRGB(0, 100, 255), function() SetHDRank(3, "Admin") end, nil)
+CreateButton(DropHD, "HeadAdmin (4)", Color3.fromRGB(255, 100, 0), function() SetHDRank(4, "HeadAdmin") end, nil)
+CreateButton(DropHD, "Owner (5)", Color3.fromRGB(255, 0, 0), function() SetHDRank(5, "Owner") end, nil)
+CreateButton(DropHD, "Above Owner", Color3.fromRGB(138, 43, 226), function() SetHDRank(math.huge, "Above Owner") end, nil)
+
+local VMWrapper = Instance.new("Frame")
+VMWrapper.Parent = PageVM
+VMWrapper.BackgroundColor3 = Color3.fromRGB(20, 21, 26)
+VMWrapper.Size = UDim2.new(1, -5, 0, 250)
+local VMWrapperCorner = Instance.new("UICorner")
+VMWrapperCorner.CornerRadius = UDim.new(0, 8)
+VMWrapperCorner.Parent = VMWrapper
+
+local VMHeader = Instance.new("Frame")
+VMHeader.Parent = VMWrapper
+VMHeader.BackgroundColor3 = Color3.fromRGB(30, 31, 36)
+VMHeader.Size = UDim2.new(1, 0, 0, 30)
+local VMHeaderCorner = Instance.new("UICorner")
+VMHeaderCorner.CornerRadius = UDim.new(0, 8)
+VMHeaderCorner.Parent = VMHeader
+
+local VMTitle = Instance.new("TextLabel")
+VMTitle.Parent = VMHeader
+VMTitle.BackgroundTransparency = 1
+VMTitle.Position = UDim2.new(0, 10, 0, 0)
+VMTitle.Size = UDim2.new(1, -20, 1, 0)
+VMTitle.Font = Enum.Font.GothamBold
+VMTitle.Text = "🌐 Sandbox"
+VMTitle.TextColor3 = Color3.fromRGB(200, 220, 255)
+VMTitle.TextSize = 12
+VMTitle.TextXAlignment = Enum.TextXAlignment.Left
+
+local VMContent = Instance.new("Frame")
+VMContent.Parent = VMWrapper
+VMContent.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+VMContent.Position = UDim2.new(0, 10, 0, 40)
+VMContent.Size = UDim2.new(1, -20, 1, -50)
+local VMContentCorner = Instance.new("UICorner")
+VMContentCorner.CornerRadius = UDim.new(0, 4)
+VMContentCorner.Parent = VMContent
+
+local VMBrowserMock = Instance.new("TextLabel")
+VMBrowserMock.Parent = VMContent
+VMBrowserMock.BackgroundTransparency = 1
+VMBrowserMock.Size = UDim2.new(1, 0, 1, 0)
+VMBrowserMock.Font = Enum.Font.Gotham
+VMBrowserMock.Text = "Virtual Machine is OFF"
+VMBrowserMock.TextColor3 = Color3.fromRGB(100, 100, 100)
+VMBrowserMock.TextSize = 12
+VMBrowserMock.TextWrapped = true
+
+local DropUserAgent = CreateDropdown(PageVM, "Change User Agent")
+CreateButton(DropUserAgent, "Windows", Color3.fromRGB(50, 50, 50), function() State.VM_UserAgent = "Windows" end, nil)
+CreateButton(DropUserAgent, "Android", Color3.fromRGB(50, 50, 50), function() State.VM_UserAgent = "Android" end, nil)
+CreateButton(DropUserAgent, "Linux", Color3.fromRGB(50, 50, 50), function() State.VM_UserAgent = "Linux" end, nil)
+
+CreateDualSwitch(PageVM, "Power ON/OFF", "VM_Power")
+
+RunService.RenderStepped:Connect(function()
+    if State.VM_Power then
+        VMContent.BackgroundColor3 = Color3.fromRGB(240, 240, 240)
+        VMBrowserMock.Text = "Connected via " .. State.VM_UserAgent .. " User-Agent."
+        VMBrowserMock.TextColor3 = Color3.fromRGB(0, 0, 0)
+    else
+        VMContent.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+        VMBrowserMock.Text = "Virtual Machine is OFF"
+        VMBrowserMock.TextColor3 = Color3.fromRGB(100, 100, 100)
+    end
+end)
+
+local PreviewBox = Instance.new("Frame")
+PreviewBox.Parent = PageCustomUI
+PreviewBox.BackgroundColor3 = Color3.fromRGB(20, 21, 26)
+PreviewBox.Size = UDim2.new(1, -5, 0, 60)
+local PreviewBoxCorner = Instance.new("UICorner")
+PreviewBoxCorner.CornerRadius = UDim.new(0, 8)
+PreviewBoxCorner.Parent = PreviewBox
+
+local PreviewStroke = Instance.new("UIStroke")
+PreviewStroke.Parent = PreviewBox
+PreviewStroke.Color = State.MainColor
+PreviewStroke.Thickness = 2
+
+local PreviewText = Instance.new("TextLabel")
+PreviewText.Parent = PreviewBox
+PreviewText.BackgroundTransparency = 1
+PreviewText.Size = UDim2.new(1, 0, 1, 0)
+PreviewText.Font = Enum.Font.GothamBold
+PreviewText.Text = "PREVIEW COLOR"
+PreviewText.TextColor3 = State.MainColor
+PreviewText.TextSize = 14
+
+local TmpColor = State.MainColor
+
+local PaletteFrame = Instance.new("Frame")
+PaletteFrame.Parent = PageCustomUI
+PaletteFrame.BackgroundTransparency = 1
+PaletteFrame.Size = UDim2.new(1, -5, 0, 150)
+local PaletteGrid = Instance.new("UIGridLayout")
+PaletteGrid.Parent = PaletteFrame
+PaletteGrid.CellSize = UDim2.new(0, 30, 0, 30)
+PaletteGrid.CellPadding = UDim2.new(0, 5, 0, 5)
+PaletteGrid.SortOrder = Enum.SortOrder.LayoutOrder
+
+local colorList = {
+    Color3.fromRGB(255,0,0), 
+    Color3.fromRGB(0,255,0), 
+    Color3.fromRGB(0,0,255), 
+    Color3.fromRGB(255,255,0), 
+    Color3.fromRGB(255,0,255),
+    Color3.fromRGB(0,255,255), 
+    Color3.fromRGB(255,128,0), 
+    Color3.fromRGB(128,0,255), 
+    Color3.fromRGB(255,0,128), 
+    Color3.fromRGB(0,255,128),
+    Color3.fromRGB(128,255,0), 
+    Color3.fromRGB(0,128,255),
+    Color3.fromRGB(255,255,255), 
+    Color3.fromRGB(100,100,100), 
+    Color3.fromRGB(50,50,50),
+    Color3.fromRGB(138,43,226), 
+    Color3.fromRGB(0,200,150), 
+    Color3.fromRGB(255,100,100), 
+    Color3.fromRGB(100,255,100), 
+    Color3.fromRGB(100,100,255),
+    Color3.fromRGB(255,200,100), 
+    Color3.fromRGB(200,255,100), 
+    Color3.fromRGB(100,200,255), 
+    Color3.fromRGB(255,150,0), 
+    Color3.fromRGB(0,150,255),
+    Color3.fromRGB(150,0,255), 
+    Color3.fromRGB(255,0,150), 
+    Color3.fromRGB(0,255,150), 
+    Color3.fromRGB(150,255,0), 
+    Color3.fromRGB(200,0,0),
+    Color3.fromRGB(0,200,0), 
+    Color3.fromRGB(0,0,200), 
+    Color3.fromRGB(200,200,0), 
+    Color3.fromRGB(200,0,200), 
+    Color3.fromRGB(0,200,200)
+}
+
+for i, col in ipairs(colorList) do
+    local cBtn = Instance.new("TextButton")
+    cBtn.Parent = PaletteFrame
+    cBtn.BackgroundColor3 = col
+    cBtn.Text = ""
+    local cCorner = Instance.new("UICorner")
+    cCorner.CornerRadius = UDim.new(0, 4)
+    cCorner.Parent = cBtn
+    cBtn.MouseButton1Click:Connect(function()
+        TmpColor = col
+        PreviewStroke.Color = TmpColor
+        PreviewText.TextColor3 = TmpColor
+    end)
+end
+
+CreateDualSwitch(PageCustomUI, "RGB", "RGBGaming")
+
+CreateButton(PageCustomUI, "Test Notify Custom", "Main", function()
+    local oldC = State.MainColor
+    State.MainColor = TmpColor
+    XayzNotify("Test Custom", "This is how it looks!", 3)
+    State.MainColor = oldC
+end, nil)
+
+CreateButton(PageCustomUI, "Apply Change", Color3.fromRGB(50, 200, 100), function()
+    State.MainColor = TmpColor
+    local configData = {
+        R = math.floor(State.MainColor.R * 255),
+        G = math.floor(State.MainColor.G * 255),
+        B = math.floor(State.MainColor.B * 255),
+        RGBGaming = State.RGBGaming
+    }
+    pcall(function()
+        if writefile then
+            writefile(ConfigFileName, HttpService:JSONEncode(configData))
+        end
+    end)
+    XayzNotify("Theme Saved", "Colors applied successfully.", 3)
+end, nil)
+
+CreateButton(PageCustomUI, "Cancel", Color3.fromRGB(200, 50, 50), function()
+    TmpColor = State.MainColor
+    PreviewStroke.Color = TmpColor
+    PreviewText.TextColor3 = TmpColor
+end, nil)
+
+CreateDualSwitch(PageSettings, "Performance Mode", "PerformanceMode")
 
 local FlyLoop = nil
 local FlyBV = nil
@@ -1537,6 +1777,30 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
+RunService.Heartbeat:Connect(function()
+    local char = LocalPlayer.Character
+    if char then
+        local hum = char:FindFirstChildOfClass("Humanoid")
+        if hum then
+            if State.HealLoop then
+                hum.Health = hum.MaxHealth
+            end
+            if State.GodModeV4 then
+                hum.MaxHealth = math.huge
+                hum.Health = math.huge
+            end
+            
+            local widthScale = hum:FindFirstChild("BodyWidthScale")
+            local depthScale = hum:FindFirstChild("BodyDepthScale")
+            if widthScale and depthScale then
+                widthScale.Value = State.WideAvatar
+                depthScale.Value = State.WideAvatar
+            end
+        end
+    end
+end)
+
+
 local AnchorPart = nil
 local AnchorAtt = nil
 
@@ -1576,8 +1840,6 @@ punchAnimation.AnimationId = "rbxassetid://84674780"
 
 local dTrack = nil
 local pTrack = nil
-local hdFired = false
-local angleBH = 1
 
 local function CreateStick()
     local char = LocalPlayer.Character
@@ -1618,7 +1880,27 @@ local function CreateStick()
     
     return model
 end
+
 local myTool = nil
+local mouse = LocalPlayer:GetMouse()
+local targetPlayer = nil
+
+mouse.Button1Down:Connect(function()
+    if State.FakeKiller then
+        local target = mouse.Target
+        if target and target.Parent:FindFirstChild("Humanoid") then
+            targetPlayer = target.Parent
+            task.spawn(function()
+                while targetPlayer and State.FakeKiller do
+                    char:SetPrimaryPartCFrame(targetPlayer.PrimaryPartCFrame * CFrame.new(0, 0, 1))
+            task.wait(0.1)
+            char:SetPrimaryPartCFrame(targetPlayer.PrimaryPartCFrame * CFrame.new(0, 0, 0.5))
+            task.wait(0.1)
+                end
+            end)
+        end
+    end
+end)
 
 RunService.Heartbeat:Connect(function()
     local char = LocalPlayer.Character
@@ -1627,9 +1909,11 @@ RunService.Heartbeat:Connect(function()
     local armJoint = nil
     local isR15 = char:FindFirstChild("UpperTorso") ~= nil
     if isR15 then
-        armJoint = char:FindFirstChild("RightUpperArm") and char.RightUpperArm:FindFirstChild("RightShoulder")
+        local rArm = char:FindFirstChild("RightUpperArm")
+        if rArm then armJoint = rArm:FindFirstChild("RightShoulder") end
     else
-        armJoint = char:FindFirstChild("Torso") and char.Torso:FindFirstChild("Right Shoulder")
+        local torso = char:FindFirstChild("Torso")
+        if torso then armJoint = torso:FindFirstChild("Right Shoulder") end
     end
 
     if armJoint then
@@ -1651,26 +1935,6 @@ RunService.Heartbeat:Connect(function()
         end
     end
     
-    if State.HDAdmin then
-        if not hdFired then
-            local HD = game:GetService("ReplicatedStorage"):FindFirstChild("HDAdminClient")
-            if HD then
-                pcall(function()
-                    local mainModule = require(LocalPlayer.PlayerScripts:WaitForChild("HDAdminClient"):WaitForChild("Main"))
-                    mainModule.Settings.Rank = 5
-                    mainModule.Settings.RankName = "The King Xayz 👑"
-                    local remote = game:GetService("ReplicatedStorage"):FindFirstChild("HDAdminRemote")
-                    if remote then
-                        remote:FireServer("Rank", LocalPlayer, 5) 
-                    end
-                end)
-            end
-            hdFired = true
-        end
-    else
-        hdFired = false
-    end
-    
     if State.FakeKiller then
         if not myTool then
             myTool = CreateStick()
@@ -1679,8 +1943,6 @@ RunService.Heartbeat:Connect(function()
             myTool.Parent = char
             myTool.Visible = State.ShowStick
         end
-        local mouse = LocalPlayer:GetMouse()
-        local targetPlayer = nil
     else
         if myTool then
             myTool:Destroy()
@@ -1729,11 +1991,7 @@ RunService.Heartbeat:Connect(function()
     local anchor, anchorAttachment = GetAnchorSetup()
 
     if State.Blackhole then
-        angleBH = angleBH + math.rad(State.BlackholeSpeed)
-        local offsetX = math.cos(angleBH) * State.BlackholeRadius
-        local offsetZ = math.sin(angleBH) * State.BlackholeRadius
-        anchorAttachment.WorldCFrame = hrp.CFrame * CFrame.new(offsetX, 0, offsetZ)
-
+        anchor.CFrame = hrp.CFrame * CFrame.new(0, 0, -State.BlackholeDistance)
         for _, v in pairs(Workspace:GetDescendants()) do
             if v:IsA("Part") and not v.Anchored and not v.Parent:FindFirstChild("Humanoid") and v.Name ~= "Handle" then
                 v.CanCollide = false
@@ -1759,7 +2017,6 @@ RunService.Heartbeat:Connect(function()
         for _, v in pairs(Workspace:GetDescendants()) do
             if v:IsA("Part") and not v.Anchored and not v.Parent:FindFirstChild("Humanoid") and v.Name ~= "Handle" then
                 table.insert(unanchoredParts, v)
-                v.CanCollide = false
                 if v:FindFirstChild("XayzAlign") then
                     v:FindFirstChild("XayzAlign"):Destroy()
                 end
@@ -1791,6 +2048,7 @@ RunService.Heartbeat:Connect(function()
         for _, v in pairs(Workspace:GetDescendants()) do
             if v:IsA("Part") and v:FindFirstChild("XayzAlign") then
                 v:FindFirstChild("XayzAlign"):Destroy()
+                
                 if v:FindFirstChild("XayzTorque") then
                     v:FindFirstChild("XayzTorque"):Destroy()
                 end
