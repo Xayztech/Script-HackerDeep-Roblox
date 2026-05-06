@@ -41,19 +41,19 @@ local State = {
     ForceField = false,
     HealLoop = false,
     GodModeV4 = false,
-    WideAvatar = 1,
+    WideAvatar = 100,
     DinoAnim = false,
     PunchAnim = false,
     ArmAnim = false,
     ArmSpeed = 15,
     ArmIntensity = 0.5,
     SuperRing = false,
-    RingSpeed = 40,
+    RingSpeed = 10,
     RingHeight = 100,
     RingDistance = 50,
     RingAttraction = 1000,
     Blackhole = false,
-    BlackholeDistance = 30,
+    BlackholeDistance = 20,
     MainColor = Color3.fromRGB(138, 43, 226),
     RGBGaming = false,
     VM_Power = false,
@@ -129,59 +129,330 @@ local function FireAllRemotes(keyword, argsTable)
     end
 end
 
-local gEnv = nil
-local pcallGenv, errGenv = pcall(function()
-    local ge = getgenv()
-    gEnv = ge
-end)
-if not gEnv then
-    gEnv = _G
+local getEnv = getgenv
+local env = nil
+if getEnv then
+    env = getEnv()
+end
+if not env then
+    env = _G
 end
 
-if not gEnv.Network then
-    local tNet = {}
-    tNet.BaseParts = {}
-    local vVel = Vector3.new(14.46262424, 14.46262424, 14.46262424)
-    tNet.Velocity = vVel
-    
-    local function retPart(part)
-        local isInst = typeof(part) == "Instance"
-        if isInst then
+if not env.Network then
+    local netTable = {}
+    local basePartsList = {}
+    netTable.BaseParts = basePartsList
+    local defVel = Vector3.new(14.46262424, 14.46262424, 14.46262424)
+    netTable.Velocity = defVel
+
+    local function retainPartFunc(part)
+        local tType = typeof(part)
+        if tType == "Instance" then
             local isBP = part:IsA("BasePart")
             if isBP then
                 local isDesc = part:IsDescendantOf(Workspace)
                 if isDesc then
-                    table.insert(tNet.BaseParts, part)
-                    local pp = PhysicalProperties.new(0, 0, 0, 0, 0)
-                    part.CustomPhysicalProperties = pp
+                    table.insert(env.Network.BaseParts, part)
+                    local physProp = PhysicalProperties.new(0, 0, 0, 0, 0)
+                    part.CustomPhysicalProperties = physProp
                     part.CanCollide = false
                 end
             end
         end
     end
-    tNet.RetainPart = retPart
-    gEnv.Network = tNet
-    
-    local function enCtrl()
+    netTable.RetainPart = retainPartFunc
+    env.Network = netTable
+
+    local function enablePartControl()
         LocalPlayer.ReplicationFocus = Workspace
         local hbConn = RunService.Heartbeat:Connect(function()
-            local succSHP, errSHP = pcall(function()
+            local succ, err = pcall(function()
                 if sethiddenproperty then
                     sethiddenproperty(LocalPlayer, "SimulationRadius", math.huge)
                 end
             end)
-            local bps = gEnv.Network.BaseParts
-            for _, pt in pairs(bps) do
+            local pList = env.Network.BaseParts
+            for _, pt in pairs(pList) do
                 local isD = pt:IsDescendantOf(Workspace)
                 if isD then
-                    local nVel = gEnv.Network.Velocity
-                    pt.Velocity = nVel
+                    local cVel = env.Network.Velocity
+                    pt.Velocity = cVel
                 end
             end
         end)
     end
-    enCtrl()
+    enablePartControl()
 end
+
+local BlackholeFolder = Instance.new("Folder")
+BlackholeFolder.Parent = Workspace
+
+local BlackholePart = Instance.new("Part")
+BlackholePart.Parent = BlackholeFolder
+BlackholePart.Anchored = true
+BlackholePart.CanCollide = false
+BlackholePart.Transparency = 1
+
+local Attachment1 = Instance.new("Attachment")
+Attachment1.Parent = BlackholePart
+
+local function ForcePart(v)
+    local isP = v:IsA("Part")
+    if isP then
+        local isAnc = v.Anchored
+        if not isAnc then
+            local pnt = v.Parent
+            local fHum = nil
+            local fHd = nil
+            if pnt then
+                fHum = pnt:FindFirstChild("Humanoid")
+                fHd = pnt:FindFirstChild("Head")
+            end
+            if not fHum then
+                if not fHd then
+                    local vNm = v.Name
+                    if vNm ~= "Handle" then
+                        local children = v:GetChildren()
+                        for _, x in pairs(children) do
+                            local isBAV = x:IsA("BodyAngularVelocity")
+                            local isBF = x:IsA("BodyForce")
+                            local isBG = x:IsA("BodyGyro")
+                            local isBP = x:IsA("BodyPosition")
+                            local isBT = x:IsA("BodyThrust")
+                            local isBV = x:IsA("BodyVelocity")
+                            local isRP = x:IsA("RocketPropulsion")
+                            local del = false
+                            if isBAV then
+                                del = true
+                            end
+                            if isBF then
+                                del = true
+                            end
+                            if isBG then
+                                del = true
+                            end
+                            if isBP then
+                                del = true
+                            end
+                            if isBT then
+                                del = true
+                            end
+                            if isBV then
+                                del = true
+                            end
+                            if isRP then
+                                del = true
+                            end
+                            if del then
+                                x:Destroy()
+                            end
+                        end
+                        
+                        local fAtt = v:FindFirstChild("Attachment")
+                        if fAtt then
+                            fAtt:Destroy()
+                        end
+                        local fAlgn = v:FindFirstChild("AlignPosition")
+                        if fAlgn then
+                            fAlgn:Destroy()
+                        end
+                        local fTq = v:FindFirstChild("Torque")
+                        if fTq then
+                            fTq:Destroy()
+                        end
+                        
+                        v.CanCollide = false
+                        
+                        local tq = Instance.new("Torque")
+                        tq.Parent = v
+                        local tqV = Vector3.new(1000000, 1000000, 1000000)
+                        tq.Torque = tqV
+                        
+                        local al = Instance.new("AlignPosition")
+                        al.Parent = v
+                        
+                        local att2 = Instance.new("Attachment")
+                        att2.Parent = v
+                        
+                        tq.Attachment0 = att2
+                        local mHg = math.huge
+                        al.MaxForce = mHg
+                        al.MaxVelocity = mHg
+                        al.Responsiveness = 500
+                        al.Attachment0 = att2
+                        al.Attachment1 = Attachment1
+                    end
+                end
+            end
+        end
+    end
+end
+
+local bhAng = 1
+local rsConnBH = RunService.RenderStepped:Connect(function()
+    local isBhOn = State.Blackhole
+    if isBhOn then
+        local lpChar = LocalPlayer.Character
+        if lpChar then
+            local hrp = lpChar:FindFirstChild("HumanoidRootPart")
+            if hrp then
+                local wsDesc = Workspace:GetDescendants()
+                for _, v in pairs(wsDesc) do
+                    ForcePart(v)
+                end
+                
+                local mRad = math.rad(2)
+                bhAng = bhAng + mRad
+                
+                local rDist = State.BlackholeDistance
+                local mCos = math.cos(bhAng)
+                local offX = mCos * rDist
+                
+                local mSin = math.sin(bhAng)
+                local offZ = mSin * rDist
+                
+                local hrpCF = hrp.CFrame
+                local cfOff = CFrame.new(offX, 0, offZ)
+                local finalCF = hrpCF * cfOff
+                Attachment1.WorldCFrame = finalCF
+            end
+        end
+    end
+    if not isBhOn then
+        local cfZero = CFrame.new(0, -1000, 0)
+        Attachment1.WorldCFrame = cfZero
+    end
+end)
+
+local function RetainPartRing(part)
+    local isBP = part:IsA("BasePart")
+    if isBP then
+        local isAnc = part.Anchored
+        if not isAnc then
+            local isDescWS = part:IsDescendantOf(Workspace)
+            if isDescWS then
+                local lpChar = LocalPlayer.Character
+                local isPntChar = false
+                local isDescChar = false
+                if lpChar then
+                    local pnt = part.Parent
+                    if pnt == lpChar then
+                        isPntChar = true
+                    end
+                    local dChar = part:IsDescendantOf(lpChar)
+                    if dChar then
+                        isDescChar = true
+                    end
+                end
+                if isPntChar then
+                    return false
+                end
+                if isDescChar then
+                    return false
+                end
+                local pp = PhysicalProperties.new(0, 0, 0, 0, 0)
+                part.CustomPhysicalProperties = pp
+                part.CanCollide = false
+                return true
+            end
+        end
+    end
+    return false
+end
+
+local RingPartsList = {}
+
+local function addPartToList(part)
+    local canRet = RetainPartRing(part)
+    if canRet then
+        local isFound = false
+        for _, v in pairs(RingPartsList) do
+            if v == part then
+                isFound = true
+            end
+        end
+        if not isFound then
+            table.insert(RingPartsList, part)
+        end
+    end
+end
+
+local function remPartFromList(part)
+    local fIdx = nil
+    for i, v in ipairs(RingPartsList) do
+        if v == part then
+            fIdx = i
+        end
+    end
+    if fIdx then
+        table.remove(RingPartsList, fIdx)
+    end
+end
+
+local wsDescList = Workspace:GetDescendants()
+for _, part in pairs(wsDescList) do
+    addPartToList(part)
+end
+
+local connDA = Workspace.DescendantAdded:Connect(addPartToList)
+local connDR = Workspace.DescendantRemoving:Connect(remPartFromList)
+
+local rsConnRing = RunService.Heartbeat:Connect(function()
+    local isRingOn = State.SuperRing
+    if isRingOn then
+        local lpChar = LocalPlayer.Character
+        if lpChar then
+            local hrp = lpChar:FindFirstChild("HumanoidRootPart")
+            if hrp then
+                local tCenter = hrp.Position
+                for _, part in pairs(RingPartsList) do
+                    local pnt = part.Parent
+                    if pnt then
+                        local isAnc = part.Anchored
+                        if not isAnc then
+                            local pos = part.Position
+                            local vPosC = Vector3.new(pos.X, tCenter.Y, pos.Z)
+                            local distSub = vPosC - tCenter
+                            local distance = distSub.Magnitude
+                            
+                            local zSub = pos.Z - tCenter.Z
+                            local xSub = pos.X - tCenter.X
+                            local calcAng = math.atan2(zSub, xSub)
+                            
+                            local rotSpd = State.RingSpeed
+                            local mRad = math.rad(rotSpd)
+                            local nAng = calcAng + mRad
+                            
+                            local rDist = State.RingDistance
+                            local minDist = math.min(rDist, distance)
+                            
+                            local mCos = math.cos(nAng)
+                            local tx = tCenter.X + (mCos * minDist)
+                            
+                            local ySub = pos.Y - tCenter.Y
+                            local rHei = State.RingHeight
+                            local hDiv = ySub / rHei
+                            local mSinH = math.sin(hDiv)
+                            local mAbsH = math.abs(mSinH)
+                            local ty = tCenter.Y + (rHei * mAbsH)
+                            
+                            local mSin = math.sin(nAng)
+                            local tz = tCenter.Z + (mSin * minDist)
+                            
+                            local tarPos = Vector3.new(tx, ty, tz)
+                            local tDirSub = tarPos - part.Position
+                            local tDirUn = tDirSub.Unit
+                            
+                            local attrStr = State.RingAttraction
+                            local fVel = tDirUn * attrStr
+                            part.Velocity = fVel
+                        end
+                    end
+                end
+            end
+        end
+    end
+end)
 
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "XayzExV3X"
@@ -420,40 +691,47 @@ local function XayzNotify(title, text, duration)
     
     if not State.PerformanceMode then
         local tInfoIn = TweenInfo.new(0.3)
-        local tPropIn1 = {BackgroundTransparency = 0}
+        local tPropIn1 = {}
+        tPropIn1.BackgroundTransparency = 0
         local tw1 = TweenService:Create(NotifFrame, tInfoIn, tPropIn1)
         tw1:Play()
         
-        local tPropIn2 = {TextTransparency = 0}
+        local tPropIn2 = {}
+        tPropIn2.TextTransparency = 0
         local tw2 = TweenService:Create(Tbl, tInfoIn, tPropIn2)
         tw2:Play()
         local tw3 = TweenService:Create(Dbl, tInfoIn, tPropIn2)
         tw3:Play()
         
-        local tPropIn3 = {BackgroundTransparency = 0}
+        local tPropIn3 = {}
+        tPropIn3.BackgroundTransparency = 0
         local tw4 = TweenService:Create(ProgBg, tInfoIn, tPropIn3)
         tw4:Play()
         local tw5 = TweenService:Create(ProgFill, tInfoIn, tPropIn3)
         tw5:Play()
         
         local progTweenInfo = TweenInfo.new(notifDuration, Enum.EasingStyle.Linear)
-        local progTweenProp = {Size = UDim2.new(0, 0, 1, 0)}
+        local progTweenProp = {}
+        progTweenProp.Size = UDim2.new(0, 0, 1, 0)
         local progTween = TweenService:Create(ProgFill, progTweenInfo, progTweenProp)
         progTween:Play()
         
         local twConn = progTween.Completed:Connect(function()
             local tInfoOut = TweenInfo.new(0.3)
-            local tPropOut1 = {BackgroundTransparency = 1}
+            local tPropOut1 = {}
+            tPropOut1.BackgroundTransparency = 1
             local twOut1 = TweenService:Create(NotifFrame, tInfoOut, tPropOut1)
             twOut1:Play()
             
-            local tPropOut2 = {TextTransparency = 1}
+            local tPropOut2 = {}
+            tPropOut2.TextTransparency = 1
             local twOut2 = TweenService:Create(Tbl, tInfoOut, tPropOut2)
             twOut2:Play()
             local twOut3 = TweenService:Create(Dbl, tInfoOut, tPropOut2)
             twOut3:Play()
             
-            local tPropOut3 = {BackgroundTransparency = 1}
+            local tPropOut3 = {}
+            tPropOut3.BackgroundTransparency = 1
             local twOut4 = TweenService:Create(ProgBg, tInfoOut, tPropOut3)
             twOut4:Play()
             local twOut5 = TweenService:Create(ProgFill, tInfoOut, tPropOut3)
@@ -538,7 +816,7 @@ AuraText.Position = atPos
 local atSize = UDim2.new(1, 0, 0, 40)
 AuraText.Size = atSize
 AuraText.Font = Enum.Font.GothamBlack
-AuraText.Text = "X A Y Z  P A N E L  L I T E  X"
+AuraText.Text = "X A Y Z   L I T E  X"
 local atCol = Color3.fromRGB(255, 255, 255)
 AuraText.TextColor3 = atCol
 AuraText.TextSize = 28
@@ -592,7 +870,8 @@ local loadSpawn = task.spawn(function()
         while loading do
             t = t + 0.05
             local currentRot = Spinner.Rotation
-            Spinner.Rotation = currentRot + 10
+            local nRot = currentRot + 10
+            Spinner.Rotation = nRot
             
             local sinValue = math.sin(t)
             local offsetVec = Vector2.new(sinValue, 0)
@@ -871,15 +1150,15 @@ local PageCustomUI = CreatePage("CustomUI")
 local PageSettings = CreatePage("Settings")
 
 SwitchPage("Combat")
-local Tab1 = CreateTabBtn("⚔️ COMBAT", "Combat")
+local Tab1 = CreateTabBtn("COMBAT", "Combat")
 Tab1.TextColor3 = State.MainColor
-local Tab2 = CreateTabBtn("👁️ VISUAL", "Visual")
-local Tab3 = CreateTabBtn("🌪️ FLINGS", "Flings")
-local Tab4 = CreateTabBtn("🌍 WORLD", "World")
-local Tab5 = CreateTabBtn("🛡️ ADMIN", "Admin")
-local Tab6 = CreateTabBtn("🌐 VM", "VirtualMachine")
-local Tab7 = CreateTabBtn("🎨 CUSTOM UI", "CustomUI")
-local Tab8 = CreateTabBtn("⚙️ SETTINGS", "Settings")
+local Tab2 = CreateTabBtn("VISUAL", "Visual")
+local Tab3 = CreateTabBtn("FLINGS", "Flings")
+local Tab4 = CreateTabBtn("WORLD", "World")
+local Tab5 = CreateTabBtn("ADMIN", "Admin")
+local Tab6 = CreateTabBtn("VM", "VirtualMachine")
+local Tab7 = CreateTabBtn("CUSTOM UI", "CustomUI")
+local Tab8 = CreateTabBtn("SETTINGS", "Settings")
 
 local function CreateDualSwitch(page, text, stateKey)
     local Frame = Instance.new("Frame")
@@ -1617,18 +1896,18 @@ local Toggle6 = CreateToggle(PageCombat, "ForceField", "ForceField", nil)
 local Toggle7 = CreateToggle(PageCombat, "Fly", "Fly", nil)
 local Stepper2 = CreateStepper(PageCombat, "Fly Speed", "FlySpeed", "Fly", false)
 
-local Toggle8 = CreateToggle(PageVisual, "ESP", "ESP", nil)
+local Toggle8 = CreateToggle(PageVisual, "Ultimate ESP", "ESP", nil)
 local DropESP = CreateDropdown(PageVisual, "Advanced ESP")
 local Toggle9 = CreateToggle(DropESP, "Show Box", "ESP_Box", "ESP")
 local Toggle10 = CreateToggle(DropESP, "Show Name & Distance", "ESP_Name", "ESP")
 local Toggle11 = CreateToggle(DropESP, "Show Healthbar", "ESP_Health", "ESP")
-local Toggle12 = CreateToggle(DropESP, "Show Tracer (Lines)", "ESP_Tracer", "ESP")
-local Toggle13 = CreateToggle(DropESP, "Show Chams (Highlight)", "ESP_Chams", "ESP")
+local Toggle12 = CreateToggle(DropESP, "Show Tracer", "ESP_Tracer", "ESP")
+local Toggle13 = CreateToggle(DropESP, "Show Chams", "ESP_Chams", "ESP")
 local Input1 = CreateInput(PageVisual, "Set POV Camera (1-120)", "POV", nil)
 
-local Toggle14 = CreateToggle(PageFlings, "Fling V1", "FlingV2", nil)
+local Toggle14 = CreateToggle(PageFlings, "Fling", "FlingV2", nil)
 local Toggle15 = CreateToggle(PageFlings, "Fling V2", "FlingV3", nil)
-local Input2 = CreateInput(PageFlings, "Set Fling Power", "FlingPower", nil)
+local Input2 = CreateInput(PageFlings, "Set Fling Power (Def: 50)", "FlingPower", nil)
 local Toggle16 = CreateToggle(PageFlings, "Super Touch Fling", "SuperFling", nil)
 
 local Btn2 = CreateButton(PageFlings, "Teleport to ALL Players", "Main", function()
@@ -1703,7 +1982,7 @@ end, nil)
 local Toggle17 = CreateToggle(PageFlings, "Dino Animation", "DinoAnim", nil)
 local Toggle18 = CreateToggle(PageFlings, "Punch Animation", "PunchAnim", nil)
 
-local Toggle19 = CreateToggle(PageFlings, "Shake Arm", "ArmAnim", nil)
+local Toggle19 = CreateToggle(PageFlings, "Arm Mover", "ArmAnim", nil)
 local DropArm = CreateDropdown(PageFlings, "Advanced Arm Mover")
 local Stepper3 = CreateStepper(DropArm, "Arm Speed", "ArmSpeed", "ArmAnim", false)
 local Stepper4 = CreateStepper(DropArm, "Arm Intensity", "ArmIntensity", "ArmAnim", true)
@@ -1804,7 +2083,7 @@ local Toggle21 = CreateToggle(PageWorld, "Blackhole", "Blackhole", nil)
 local DropBH = CreateDropdown(PageWorld, "Advanced Blackhole")
 local Stepper10 = CreateStepper(DropBH, "Blackhole Distance", "BlackholeDistance", "Blackhole", false)
 
-local Btn8 = CreateButton(PageAdmin, "Get F3X", "Main", function()
+local Btn8 = CreateButton(PageAdmin, "Get F3X Btools", "Main", function()
     local tbArgs = {}
     FireAllRemotes("btool", tbArgs)
     FireAllRemotes("f3x", tbArgs)
@@ -2939,14 +3218,20 @@ local function ForcePartBH(v, aAtt)
         local isAnc = v.Anchored
         if not isAnc then
             local pnt = v.Parent
-            local fHum = pnt:FindFirstChild("Humanoid")
+            local fHum = nil
+            local fHd = nil
+            if pnt then
+                local hmm = pnt:FindFirstChild("Humanoid")
+                fHum = hmm
+                local hdd = pnt:FindFirstChild("Head")
+                fHd = hdd
+            end
             if not fHum then
-                local fHd = pnt:FindFirstChild("Head")
                 if not fHd then
                     local vNm = v.Name
                     if vNm ~= "Handle" then
                         local ch = v:GetChildren()
-                        for _, x in next, ch do
+                        for _, x in pairs(ch) do
                             local b1 = x:IsA("BodyAngularVelocity")
                             local b2 = x:IsA("BodyForce")
                             local b3 = x:IsA("BodyGyro")
@@ -3220,9 +3505,15 @@ RunService.Heartbeat:Connect(function()
                 local isAnc = v.Anchored
                 if not isAnc then
                     local pnt = v.Parent
-                    local fHum = pnt:FindFirstChild("Humanoid")
+                    local fHum = nil
+                    if pnt then
+                        fHum = pnt:FindFirstChild("Humanoid")
+                    end
                     if not fHum then
-                        local fHd = pnt:FindFirstChild("Head")
+                        local fHd = nil
+                        if pnt then
+                            fHd = pnt:FindFirstChild("Head")
+                        end
                         if not fHd then
                             local vNm = v.Name
                             if vNm ~= "Handle" then
@@ -3231,7 +3522,10 @@ RunService.Heartbeat:Connect(function()
                                 if pnt == lpChar then
                                     isLp = true
                                 end
-                                local isD = v:IsDescendantOf(lpChar)
+                                local isD = false
+                                if lpChar then
+                                    isD = v:IsDescendantOf(lpChar)
+                                end
                                 if isD then
                                     isLp = true
                                 end
@@ -3267,7 +3561,7 @@ RunService.Heartbeat:Connect(function()
         end
         
         local tParts = #unParts
-        for i, pt in ipairs(unParts) do
+        for i, pt in pairs(unParts) do
             local ptPos = pt.Position
             local vXZ = Vector3.new(ptPos.X, tCenter.Y, ptPos.Z)
             local tSub = vXZ - tCenter
@@ -3333,7 +3627,8 @@ RunService.Heartbeat:Connect(function()
         end
         local fAnc = Workspace:FindFirstChild("XayzAnchor")
         if fAnc then
-            fAnc.CFrame = CFrame.new(0, -1000, 0)
+            local zPos = CFrame.new(0, -1000, 0)
+            fAnc.CFrame = zPos
         end
     end
 end)
