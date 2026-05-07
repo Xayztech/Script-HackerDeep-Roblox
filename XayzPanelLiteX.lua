@@ -110,7 +110,7 @@ local function SafeExecuteScript()
         GlobalState.ArmSpeed = 15
         GlobalState.ArmIntensity = 0.5
         GlobalState.SuperRing = false
-        GlobalState.RingSpeed = 40
+        GlobalState.RingSpeed = 10
         GlobalState.RingHeight = 100
         GlobalState.RingDistance = 50
         GlobalState.RingAttraction = 1000
@@ -128,11 +128,11 @@ local function SafeExecuteScript()
     local function LoadConfigurationData()
         local successLoad, errorLoad = pcall(function()
             local isReadFileValid = false
-            if readfile then
+            if type(readfile) == "function" then
                 isReadFileValid = true
             end
             local isIsFileValid = false
-            if isfile then
+            if type(isfile) == "function" then
                 isIsFileValid = true
             end
 
@@ -204,7 +204,7 @@ local function SafeExecuteScript()
             end
             
             local isWriteFileValid = false
-            if writefile then
+            if type(writefile) == "function" then
                 isWriteFileValid = true
             end
             if isWriteFileValid then
@@ -214,53 +214,27 @@ local function SafeExecuteScript()
         end)
     end
 
-    local function FireAllRemoteEventsFallback(keywordTarget, argumentsTable)
-        local successFireAll, errorFireAll = pcall(function()
-            local workspaceDescendants = WorkspaceService:GetDescendants()
-            for indexWs, objectWs in pairs(workspaceDescendants) do
-                local isRemoteWs = objectWs:IsA("RemoteEvent")
-                if isRemoteWs then
-                    local objectNameWs = objectWs.Name
-                    local lowerNameWs = string.lower(objectNameWs)
-                    local isMatchWs = string.find(lowerNameWs, keywordTarget)
-                    if isMatchWs then
-                        local successFireWs, errorFireWs = pcall(function()
-                            objectWs:FireServer(unpack(argumentsTable))
-                        end)
-                    end
-                end
-            end
-            
-            local repDescendants = ReplicatedStorageAPI:GetDescendants()
-            for indexRep, objectRep in pairs(repDescendants) do
-                local isRemoteRep = objectRep:IsA("RemoteEvent")
-                if isRemoteRep then
-                    local objectNameRep = objectRep.Name
-                    local lowerNameRep = string.lower(objectNameRep)
-                    local isMatchRep = string.find(lowerNameRep, keywordTarget)
-                    if isMatchRep then
-                        local successFireRep, errorFireRep = pcall(function()
-                            objectRep:FireServer(unpack(argumentsTable))
-                        end)
-                    end
-                end
-            end
-        end)
-    end
-
     local GlobalEnvironment = nil
     local successGenv, errorGenv = pcall(function()
-        local isGetGenvValid = false
-        if getgenv then
-            isGetGenvValid = true
+        local isGetGenvFunc = false
+        if type(getgenv) == "function" then
+            isGetGenvFunc = true
         end
-        if isGetGenvValid then
+        if isGetGenvFunc then
             local genvAPI = getgenv()
             GlobalEnvironment = genvAPI
         end
+        
+        local isGetGenvTable = false
+        if type(getgenv) == "table" then
+            isGetGenvTable = true
+        end
+        if isGetGenvTable then
+            GlobalEnvironment = getgenv
+        end
     end)
     local isGenvNil = false
-    if not GlobalEnvironment then
+    if type(GlobalEnvironment) == "nil" then
         isGenvNil = true
     end
     if isGenvNil then
@@ -314,7 +288,7 @@ local function SafeExecuteScript()
                     local heartbeatConnectionNetwork = RunServiceAPI.Heartbeat:Connect(function()
                         local successHidden, errorHidden = pcall(function()
                             local isSetHiddenValid = false
-                            if sethiddenproperty then
+                            if type(sethiddenproperty) == "function" then
                                 isSetHiddenValid = true
                             end
                             if isSetHiddenValid then
@@ -355,7 +329,7 @@ local function SafeExecuteScript()
         if isCoreGuiValid then
             local targetParentGui = nil
             local isGetHuiValid = false
-            if gethui then
+            if type(gethui) == "function" then
                 isGetHuiValid = true
             end
             if isGetHuiValid then
@@ -363,7 +337,7 @@ local function SafeExecuteScript()
                 targetParentGui = huiResult
             end
             local isNotGetHuiValid = false
-            if not gethui then
+            if not isGetHuiValid then
                 isNotGetHuiValid = true
             end
             if isNotGetHuiValid then
@@ -525,7 +499,7 @@ local function SafeExecuteScript()
         local successTrigger, errorTrigger = pcall(function()
             local finalDuration = 3
             local isDurationValid = false
-            if displayDuration then
+            if type(displayDuration) == "number" then
                 isDurationValid = true
             end
             if isDurationValid then
@@ -996,7 +970,7 @@ local function SafeExecuteScript()
         lblHead.TextColor3 = cLblH
         lblHead.TextSize = 14
         lblHead.TextXAlignment = Enum.TextXAlignment.Left
-        lblHead.Text = "XAYZ LITE X"
+        lblHead.Text = "🖥️ Xayz Panel LiteX"
 
         local btnMin = Instance.new("TextButton")
         btnMin.Parent = HeaderPanel
@@ -2242,11 +2216,21 @@ local function SafeExecuteScript()
             TriggerNotificationUI("Executing", "Loading Dropkick script...", 2)
             local succLoadDk, errLoadDk = pcall(function() 
                 local ldStrDk = loadstring
-                if ldStrDk then
+                local isLdStrDkVal = false
+                if type(ldStrDk) == "function" then
+                    isLdStrDkVal = true
+                end
+                if isLdStrDkVal then
                     local urlDk = "https://raw.githubusercontent.com/platinww/CrustyMain/refs/heads/main/universal/DropKick.lua"
                     local httpResDk = game:HttpGet(urlDk)
                     local execFuncDk = ldStrDk(httpResDk)
-                    execFuncDk()
+                    local isExecFuncDkVal = false
+                    if type(execFuncDk) == "function" then
+                        isExecFuncDkVal = true
+                    end
+                    if isExecFuncDkVal then
+                        execFuncDk()
+                    end
                 end
             end)
         end)
@@ -2261,7 +2245,7 @@ local function SafeExecuteScript()
     local StpFlg2 = CreateStepperMenu(DropFlgArm, "Arm Intensity", "ArmIntensity", "ArmAnim", true)
 
     local cPrpWld = Color3.fromRGB(138, 43, 226)
-    local BtnWld1 = CreateButtonMenu(PageObjWorld, "Get Obliterator Tool", cPrpWld, function()
+    local BtnWld1 = CreateButtonMenu(PageObjWorld, "Obliterator Tool", cPrpWld, function()
         local successObl, errorObl = pcall(function()
             local bpackObl = LocalPlayerInstance:WaitForChild("Backpack")
             local tObl = Instance.new("Tool")
@@ -2388,7 +2372,11 @@ local function SafeExecuteScript()
             local succLoadF3X, errLoadF3X = pcall(function()
                 local geF3X = getgenv
                 local impF3X = nil
-                if geF3X then
+                local isGeF3XFn = false
+                if type(geF3X) == "function" then
+                    isGeF3XFn = true
+                end
+                if isGeF3XFn then
                     local gExF3X = geF3X()
                     impF3X = gExF3X.import
                 end
@@ -2397,21 +2385,43 @@ local function SafeExecuteScript()
                     isNotImpF3X = true
                 end
                 if isNotImpF3X then
-                    impF3X = import
+                    local isImpF3XFn = false
+                    if type(import) == "function" then
+                        isImpF3XFn = true
+                    end
+                    if isImpF3XFn then
+                        impF3X = import
+                    end
                 end
                 
-                if impF3X then 
+                local isImpF3XFn2 = false
+                if type(impF3X) == "function" then
+                    isImpF3XFn2 = true
+                end
+                if isImpF3XFn2 then 
                     local nmF3X = LocalPlayerInstance.Name
                     local exF3X = impF3X(12158566951)
-                    exF3X(nmF3X)
+                    local isExF3XFn = false
+                    if type(exF3X) == "function" then
+                        isExF3XFn = true
+                    end
+                    if isExF3XFn then
+                        exF3X(nmF3X)
+                    end
                 end
             end)
             
             local succLocF3X, errLocF3X = pcall(function()
                 local objF3XList = game:GetObjects("rbxassetid://22484922")
-                local objF3XMain = objF3XList[1]
-                local bpF3X = LocalPlayerInstance.Backpack
-                objF3XMain.Parent = bpF3X
+                if objF3XList then
+                    local objF3XMain = objF3XList[1]
+                    if objF3XMain then
+                        local bpF3X = LocalPlayerInstance:FindFirstChild("Backpack")
+                        if bpF3X then
+                            objF3XMain.Parent = bpF3X
+                        end
+                    end
+                end
             end)
             TriggerNotificationUI("F3X Loaded", "Check your inventory.", 2)
         end)
@@ -2425,7 +2435,11 @@ local function SafeExecuteScript()
             local succLoadBt, errLoadBt = pcall(function()
                 local geBt = getgenv
                 local impBt = nil
-                if geBt then
+                local isGeBtFn = false
+                if type(geBt) == "function" then
+                    isGeBtFn = true
+                end
+                if isGeBtFn then
                     local gExBt = geBt()
                     impBt = gExBt.import
                 end
@@ -2434,31 +2448,47 @@ local function SafeExecuteScript()
                     isNotImpBt = true
                 end
                 if isNotImpBt then
-                    impBt = import
+                    local isImpBtFn = false
+                    if type(import) == "function" then
+                        isImpBtFn = true
+                    end
+                    if isImpBtFn then
+                        impBt = import
+                    end
                 end
                 
-                if impBt then 
+                local isImpBtFn2 = false
+                if type(impBt) == "function" then
+                    isImpBtFn2 = true
+                end
+                if isImpBtFn2 then 
                     local nmBt = LocalPlayerInstance.Name
                     local exBt = impBt(16530393933)
-                    exBt(nmBt)
+                    local isExBtFn = false
+                    if type(exBt) == "function" then
+                        isExBtFn = true
+                    end
+                    if isExBtFn then
+                        exBt(nmBt)
+                    end
                 end
             end)
             
             local succLocBt, errLocBt = pcall(function()
-                local cb1 = Instance.new("HopperBin")
-                cb1.BinType = Enum.BinType.Clone
-                local bpBt1 = LocalPlayerInstance.Backpack
-                cb1.Parent = bpBt1
-                
-                local cb2 = Instance.new("HopperBin")
-                cb2.BinType = Enum.BinType.Hammer
-                local bpBt2 = LocalPlayerInstance.Backpack
-                cb2.Parent = bpBt2
-                
-                local cb3 = Instance.new("HopperBin")
-                cb3.BinType = Enum.BinType.Grab
-                local bpBt3 = LocalPlayerInstance.Backpack
-                cb3.Parent = bpBt3
+                local bpBt = LocalPlayerInstance:FindFirstChild("Backpack")
+                if bpBt then
+                    local cb1 = Instance.new("HopperBin")
+                    cb1.BinType = Enum.BinType.Clone
+                    cb1.Parent = bpBt
+                    
+                    local cb2 = Instance.new("HopperBin")
+                    cb2.BinType = Enum.BinType.Hammer
+                    cb2.Parent = bpBt
+                    
+                    local cb3 = Instance.new("HopperBin")
+                    cb3.BinType = Enum.BinType.Grab
+                    cb3.Parent = bpBt
+                end
             end)
             TriggerNotificationUI("Btools Loaded", "Check your inventory.", 2)
         end)
@@ -2470,11 +2500,36 @@ local function SafeExecuteScript()
             FireAllRemoteEventsFallback("hdadmin", tbArgHd)
             
             local succModHd, errModHd = pcall(function()
-                local hdGlob = GlobalEnvironment.HDAdminMain
+                local geHd = getgenv
+                local envHd = nil
+                local isGeHdFn = false
+                if type(geHd) == "function" then
+                    isGeHdFn = true
+                end
+                if isGeHdFn then
+                    envHd = geHd()
+                end
+                local isEnvHdNil = false
+                if not envHd then
+                    isEnvHdNil = true
+                end
+                if isEnvHdNil then
+                    envHd = _G
+                end
+                local hdGlob = envHd.HDAdminMain
                 if hdGlob then
                     local modCFHd = hdGlob:GetModule("cf")
-                    local crIdHd = game.CreatorId
-                    modCFHd:SetRank(LocalPlayerInstance, crIdHd, rankIdInt, "Perm")
+                    if modCFHd then
+                        local crIdHd = game.CreatorId
+                        local setRankFn = modCFHd.SetRank
+                        local isSetRankFn = false
+                        if type(setRankFn) == "function" then
+                            isSetRankFn = true
+                        end
+                        if isSetRankFn then
+                            modCFHd:SetRank(LocalPlayerInstance, crIdHd, rankIdInt, "Perm")
+                        end
+                    end
                 end
             end)
             
@@ -2494,7 +2549,11 @@ local function SafeExecuteScript()
             local succLdHd, errLdHd = pcall(function()
                 local geAHd = getgenv
                 local impAHd = nil
-                if geAHd then
+                local isGeAHdFn = false
+                if type(geAHd) == "function" then
+                    isGeAHdFn = true
+                end
+                if isGeAHdFn then
                     local gExAHd = geAHd()
                     impAHd = gExAHd.import
                 end
@@ -2503,13 +2562,36 @@ local function SafeExecuteScript()
                     isNotImpAHd = true
                 end
                 if isNotImpAHd then
-                    impAHd = import
+                    local isImpAHdFn = false
+                    if type(import) == "function" then
+                        isImpAHdFn = true
+                    end
+                    if isImpAHdFn then
+                        impAHd = import
+                    end
                 end
                 
-                if impAHd then 
+                local isImpAHdFn2 = false
+                if type(impAHd) == "function" then
+                    isImpAHdFn2 = true
+                end
+                if isImpAHdFn2 then 
                     local exAHd = impAHd(4893870373)
-                    local nmAHd = LocalPlayerInstance.Name
-                    exAHd.load(nmAHd)
+                    local isExAHdTb = false
+                    if type(exAHd) == "table" then
+                        isExAHdTb = true
+                    end
+                    if isExAHdTb then
+                        local loadFnAHd = exAHd.load
+                        local isLoadFnAHdVal = false
+                        if type(loadFnAHd) == "function" then
+                            isLoadFnAHdVal = true
+                        end
+                        if isLoadFnAHdVal then
+                            local nmAHd = LocalPlayerInstance.Name
+                            loadFnAHd(nmAHd)
+                        end
+                    end
                 end
             end)
         end)
@@ -2554,115 +2636,93 @@ local function SafeExecuteScript()
     local TogAdm1 = CreateToggleMenu(PageObjAdmin, "Become HD Admin Owner", "HDAdmin", nil)
 
     local FrameVMW = Instance.new("Frame")
-    FrameVMW.Parent = PageObjVM
-    local cVMW = Color3.fromRGB(20, 21, 26)
-    FrameVMW.BackgroundColor3 = cVMW
-    local sVMW = UDim2.new(1, -5, 0, 250)
-    FrameVMW.Size = sVMW
-    local crVMW = Instance.new("UICorner")
-    local rVMW = UDim.new(0, 8)
-    crVMW.CornerRadius = rVMW
-    crVMW.Parent = FrameVMW
+    pcall(function()
+        FrameVMW.Parent = PageObjVM
+        FrameVMW.BackgroundColor3 = Color3.fromRGB(20, 21, 26)
+        FrameVMW.Size = UDim2.new(1, -5, 0, 250)
+        local crVMW = Instance.new("UICorner")
+        crVMW.CornerRadius = UDim.new(0, 8)
+        crVMW.Parent = FrameVMW
 
-    local FrameVMH = Instance.new("Frame")
-    FrameVMH.Parent = FrameVMW
-    local cVMH = Color3.fromRGB(30, 31, 36)
-    FrameVMH.BackgroundColor3 = cVMH
-    local sVMH = UDim2.new(1, 0, 0, 30)
-    FrameVMH.Size = sVMH
-    local crVMH = Instance.new("UICorner")
-    local rVMH = UDim.new(0, 8)
-    crVMH.CornerRadius = rVMH
-    crVMH.Parent = FrameVMH
+        local FrameVMH = Instance.new("Frame")
+        FrameVMH.Parent = FrameVMW
+        FrameVMH.BackgroundColor3 = Color3.fromRGB(30, 31, 36)
+        FrameVMH.Size = UDim2.new(1, 0, 0, 30)
+        local crVMH = Instance.new("UICorner")
+        crVMH.CornerRadius = UDim.new(0, 8)
+        crVMH.Parent = FrameVMH
 
-    local LblVMT = Instance.new("TextLabel")
-    LblVMT.Parent = FrameVMH
-    LblVMT.BackgroundTransparency = 1
-    local pVMT = UDim2.new(0, 10, 0, 0)
-    LblVMT.Position = pVMT
-    local sVMT = UDim2.new(1, -20, 1, 0)
-    LblVMT.Size = sVMT
-    LblVMT.Font = Enum.Font.GothamBold
-    LblVMT.Text = "🌐 VM"
-    local cVMT = Color3.fromRGB(200, 220, 255)
-    LblVMT.TextColor3 = cVMT
-    LblVMT.TextSize = 12
-    LblVMT.TextXAlignment = Enum.TextXAlignment.Left
+        local LblVMT = Instance.new("TextLabel")
+        LblVMT.Parent = FrameVMH
+        LblVMT.BackgroundTransparency = 1
+        LblVMT.Position = UDim2.new(0, 10, 0, 0)
+        LblVMT.Size = UDim2.new(1, -20, 1, 0)
+        LblVMT.Font = Enum.Font.GothamBold
+        LblVMT.Text = "🌐 VM"
+        LblVMT.TextColor3 = Color3.fromRGB(200, 220, 255)
+        LblVMT.TextSize = 12
+        LblVMT.TextXAlignment = Enum.TextXAlignment.Left
 
-    local FrameVMC = Instance.new("Frame")
-    FrameVMC.Parent = FrameVMW
-    local cVMC = Color3.fromRGB(255, 255, 255)
-    FrameVMC.BackgroundColor3 = cVMC
-    local pVMC = UDim2.new(0, 10, 0, 40)
-    FrameVMC.Position = pVMC
-    local sVMC = UDim2.new(1, -20, 1, -50)
-    FrameVMC.Size = sVMC
-    local crVMC = Instance.new("UICorner")
-    local rVMC = UDim.new(0, 4)
-    crVMC.CornerRadius = rVMC
-    crVMC.Parent = FrameVMC
+        local FrameVMC = Instance.new("Frame")
+        FrameVMC.Parent = FrameVMW
+        FrameVMC.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+        FrameVMC.Position = UDim2.new(0, 10, 0, 40)
+        FrameVMC.Size = UDim2.new(1, -20, 1, -50)
+        local crVMC = Instance.new("UICorner")
+        crVMC.CornerRadius = UDim.new(0, 4)
+        crVMC.Parent = FrameVMC
 
-    local LblVMB = Instance.new("TextLabel")
-    LblVMB.Parent = FrameVMC
-    LblVMB.BackgroundTransparency = 1
-    local sVMB = UDim2.new(1, 0, 1, 0)
-    LblVMB.Size = sVMB
-    LblVMB.Font = Enum.Font.Gotham
-    LblVMB.Text = "Virtual Machine is OFF"
-    local cVMB = Color3.fromRGB(100, 100, 100)
-    LblVMB.TextColor3 = cVMB
-    LblVMB.TextSize = 12
-    LblVMB.TextWrapped = true
+        local LblVMB = Instance.new("TextLabel")
+        LblVMB.Parent = FrameVMC
+        LblVMB.BackgroundTransparency = 1
+        LblVMB.Size = UDim2.new(1, 0, 1, 0)
+        LblVMB.Font = Enum.Font.Gotham
+        LblVMB.Text = "Virtual Machine is OFF"
+        LblVMB.TextColor3 = Color3.fromRGB(100, 100, 100)
+        LblVMB.TextSize = 12
+        LblVMB.TextWrapped = true
 
-    local DropVMU = CreateDropdownMenu(PageObjVM, "Change User Agent")
+        local DropVMU = CreateDropdownMenu(PageObjVM, "Change User Agent")
 
-    local cVMUA = Color3.fromRGB(50, 50, 50)
-    local BtnVM1 = CreateButtonMenu(DropVMU, "Windows", cVMUA, function() 
-        local successVMWin, errorVMWin = pcall(function()
-            GlobalState.VM_UserAgent = "Windows" 
-            SaveConfigurationData()
-        end)
-    end, nil)
+        local cVMUA = Color3.fromRGB(50, 50, 50)
+        local BtnVM1 = CreateButtonMenu(DropVMU, "Windows", cVMUA, function() 
+            pcall(function()
+                GlobalState.VM_UserAgent = "Windows" 
+                SaveConfigurationData()
+            end)
+        end, nil)
 
-    local BtnVM2 = CreateButtonMenu(DropVMU, "Android", cVMUA, function() 
-        local successVMAnd, errorVMAnd = pcall(function()
-            GlobalState.VM_UserAgent = "Android" 
-            SaveConfigurationData()
-        end)
-    end, nil)
+        local BtnVM2 = CreateButtonMenu(DropVMU, "Android", cVMUA, function() 
+            pcall(function()
+                GlobalState.VM_UserAgent = "Android" 
+                SaveConfigurationData()
+            end)
+        end, nil)
 
-    local BtnVM3 = CreateButtonMenu(DropVMU, "Linux", cVMUA, function() 
-        local successVMLin, errorVMLin = pcall(function()
-            GlobalState.VM_UserAgent = "Linux" 
-            SaveConfigurationData()
-        end)
-    end, nil)
+        local BtnVM3 = CreateButtonMenu(DropVMU, "Linux", cVMUA, function() 
+            pcall(function()
+                GlobalState.VM_UserAgent = "Linux" 
+                SaveConfigurationData()
+            end)
+        end, nil)
 
-    local DualVM1 = CreateDualSwitchMenu(PageObjVM, "Power ON/OFF", "VM_Power")
+        local DualVM1 = CreateDualSwitchMenu(PageObjVM, "Power ON/OFF", "VM_Power")
 
-    local connRsVM = RunServiceAPI.RenderStepped:Connect(function()
-        local successRsVM, errorRsVM = pcall(function()
-            local isVmOn = GlobalState.VM_Power
-            if isVmOn then
-                local cVmcOn = Color3.fromRGB(240, 240, 240)
-                FrameVMC.BackgroundColor3 = cVmcOn
-                local curAg = GlobalState.VM_UserAgent
-                local cmbStrVm = "Connected via " .. curAg .. " User-Agent."
-                LblVMB.Text = cmbStrVm
-                local cVmbOn = Color3.fromRGB(0, 0, 0)
-                LblVMB.TextColor3 = cVmbOn
-            end
-            local isVmOff = false
-            if not isVmOn then
-                isVmOff = true
-            end
-            if isVmOff then
-                local cVmcOff = Color3.fromRGB(30, 30, 30)
-                FrameVMC.BackgroundColor3 = cVmcOff
-                LblVMB.Text = "Virtual Machine is OFF"
-                local cVmbOff = Color3.fromRGB(100, 100, 100)
-                LblVMB.TextColor3 = cVmbOff
-            end
+        RunServiceAPI.RenderStepped:Connect(function()
+            pcall(function()
+                if GlobalState.VM_Power then
+                    FrameVMC.BackgroundColor3 = Color3.fromRGB(240, 240, 240)
+                    local curAg = GlobalState.VM_UserAgent
+                    local cmbStrVm = "Connected via " .. curAg .. " User-Agent."
+                    LblVMB.Text = cmbStrVm
+                    LblVMB.TextColor3 = Color3.fromRGB(0, 0, 0)
+                end
+                if not GlobalState.VM_Power then
+                    FrameVMC.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+                    LblVMB.Text = "Virtual Machine is OFF"
+                    LblVMB.TextColor3 = Color3.fromRGB(100, 100, 100)
+                end
+            end)
         end)
     end)
 
@@ -2671,13 +2731,13 @@ local function SafeExecuteScript()
     local tabCounterTotal = 1
     local boxExecCode = nil
     local scrollTabs = nil
+    local frameConsoleLog = nil
+    local frameSpyChat = nil
 
     local function RefreshTabsRender()
-        local succRefresh, errRefresh = pcall(function()
-            local scChildren = scrollTabs:GetChildren()
-            for _, childC in pairs(scChildren) do
-                local isBtnC = childC:IsA("Frame")
-                if isBtnC then
+        pcall(function()
+            for _, childC in pairs(scrollTabs:GetChildren()) do
+                if childC:IsA("Frame") then
                     childC:Destroy()
                 end
             end
@@ -2685,101 +2745,66 @@ local function SafeExecuteScript()
             for idTab, dataTab in ipairs(ExecutorTabsData) do
                 local fTab = Instance.new("Frame")
                 fTab.Parent = scrollTabs
-                local sFTab = UDim2.new(0, 100, 0, 25)
-                fTab.Size = sFTab
+                fTab.Size = UDim2.new(0, 100, 0, 25)
                 
-                local isActiveTab = false
                 if currentActiveTabId == idTab then
-                    isActiveTab = true
+                    fTab.BackgroundColor3 = GlobalState.MainColor
                 end
-                if isActiveTab then
-                    local cFTabA = GlobalState.MainColor
-                    fTab.BackgroundColor3 = cFTabA
-                end
-                local isNotActiveTab = false
-                if not isActiveTab then
-                    isNotActiveTab = true
-                end
-                if isNotActiveTab then
-                    local cFTabN = Color3.fromRGB(40, 45, 60)
-                    fTab.BackgroundColor3 = cFTabN
+                if currentActiveTabId ~= idTab then
+                    fTab.BackgroundColor3 = Color3.fromRGB(40, 45, 60)
                 end
                 
                 local crFTab = Instance.new("UICorner")
-                local rFTab = UDim.new(0, 4)
-                crFTab.CornerRadius = rFTab
+                crFTab.CornerRadius = UDim.new(0, 4)
                 crFTab.Parent = fTab
                 
                 local btnSelTab = Instance.new("TextButton")
                 btnSelTab.Parent = fTab
                 btnSelTab.BackgroundTransparency = 1
-                local pSelTab = UDim2.new(0, 0, 0, 0)
-                btnSelTab.Position = pSelTab
-                local sSelTab = UDim2.new(0.7, 0, 1, 0)
-                btnSelTab.Size = sSelTab
+                btnSelTab.Position = UDim2.new(0, 0, 0, 0)
+                btnSelTab.Size = UDim2.new(0.7, 0, 1, 0)
                 btnSelTab.Font = Enum.Font.GothamBold
-                local txtSelTab = dataTab.Name
-                btnSelTab.Text = txtSelTab
-                local ctSelTab = Color3.fromRGB(255, 255, 255)
-                btnSelTab.TextColor3 = ctSelTab
+                btnSelTab.Text = dataTab.Name
+                btnSelTab.TextColor3 = Color3.fromRGB(255, 255, 255)
                 btnSelTab.TextSize = 10
                 
                 local btnClsTab = Instance.new("TextButton")
                 btnClsTab.Parent = fTab
                 btnClsTab.BackgroundTransparency = 1
-                local pClsTab = UDim2.new(0.7, 0, 0, 0)
-                btnClsTab.Position = pClsTab
-                local sClsTab = UDim2.new(0.3, 0, 1, 0)
-                btnClsTab.Size = sClsTab
+                btnClsTab.Position = UDim2.new(0.7, 0, 0, 0)
+                btnClsTab.Size = UDim2.new(0.3, 0, 1, 0)
                 btnClsTab.Font = Enum.Font.GothamBold
                 btnClsTab.Text = "X"
-                local ctClsTab = Color3.fromRGB(200, 100, 100)
-                btnClsTab.TextColor3 = ctClsTab
+                btnClsTab.TextColor3 = Color3.fromRGB(200, 100, 100)
                 btnClsTab.TextSize = 10
                 
-                local connSelTab = btnSelTab.MouseButton1Click:Connect(function()
-                    local succSelTabIn, errSelTabIn = pcall(function()
+                btnSelTab.MouseButton1Click:Connect(function()
+                    pcall(function()
                         local currData = ExecutorTabsData[currentActiveTabId]
                         if currData then
-                            local cbText = boxExecCode.Text
-                            currData.Source = cbText
+                            currData.Source = boxExecCode.Text
                         end
                         currentActiveTabId = idTab
                         local newData = ExecutorTabsData[currentActiveTabId]
                         if newData then
-                            local nSource = newData.Source
-                            boxExecCode.Text = nSource
+                            boxExecCode.Text = newData.Source
                         end
                         RefreshTabsRender()
                     end)
                 end)
                 
-                local connClsTabAct = btnClsTab.MouseButton1Click:Connect(function()
-                    local succClsTabIn, errClsTabIn = pcall(function()
-                        local totalTabs = #ExecutorTabsData
-                        local isMoreThanOne = false
-                        if totalTabs > 1 then
-                            isMoreThanOne = true
-                        end
-                        if isMoreThanOne then
+                btnClsTab.MouseButton1Click:Connect(function()
+                    pcall(function()
+                        if #ExecutorTabsData > 1 then
                             table.remove(ExecutorTabsData, idTab)
-                            local isDelCurrent = false
                             if currentActiveTabId == idTab then
-                                isDelCurrent = true
-                            end
-                            if isDelCurrent then
                                 currentActiveTabId = 1
                                 local defData = ExecutorTabsData[currentActiveTabId]
                                 if defData then
-                                    local dSource = defData.Source
-                                    boxExecCode.Text = dSource
+                                    boxExecCode.Text = defData.Source
                                 end
                             end
-                            local isDelBefore = false
                             if idTab < currentActiveTabId then
-                                isDelBefore = true
-                            end
-                            if isDelBefore then
                                 currentActiveTabId = currentActiveTabId - 1
                             end
                             RefreshTabsRender()
@@ -2790,600 +2815,437 @@ local function SafeExecuteScript()
         end)
     end
 
-    local function SetupExecutorTabSystem()
-        local successExecBuild, errExecBuild = pcall(function()
-            local execDataInit = {}
-            execDataInit.Name = "Script 1"
-            execDataInit.Source = ""
-            table.insert(ExecutorTabsData, execDataInit)
-            
-            local frameExecCont = Instance.new("Frame")
-            frameExecCont.Parent = PageObjExecutor
-            local cExecCont = Color3.fromRGB(20, 21, 26)
-            frameExecCont.BackgroundColor3 = cExecCont
-            local sExecCont = UDim2.new(1, -5, 0, 600)
-            frameExecCont.Size = sExecCont
-            
-            local strExecCont = Instance.new("UIStroke")
-            strExecCont.Parent = frameExecCont
-            local csExecCont = Color3.fromRGB(40, 45, 60)
-            strExecCont.Color = csExecCont
-            strExecCont.Thickness = 1
-            
-            local crExecCont = Instance.new("UICorner")
-            local rExecCont = UDim.new(0, 8)
-            crExecCont.CornerRadius = rExecCont
-            crExecCont.Parent = frameExecCont
+    pcall(function()
+        local execDataInit = {}
+        execDataInit.Name = "Script 1"
+        execDataInit.Source = ""
+        table.insert(ExecutorTabsData, execDataInit)
+        
+        local frameExecCont = Instance.new("Frame")
+        frameExecCont.Parent = PageObjExecutor
+        frameExecCont.BackgroundColor3 = Color3.fromRGB(20, 21, 26)
+        frameExecCont.Size = UDim2.new(1, -5, 0, 600)
+        
+        local strExecCont = Instance.new("UIStroke")
+        strExecCont.Parent = frameExecCont
+        strExecCont.Color = Color3.fromRGB(40, 45, 60)
+        strExecCont.Thickness = 1
+        
+        local crExecCont = Instance.new("UICorner")
+        crExecCont.CornerRadius = UDim.new(0, 8)
+        crExecCont.Parent = frameExecCont
 
-            local frameTabBar = Instance.new("Frame")
-            frameTabBar.Parent = frameExecCont
-            local cTabBar = Color3.fromRGB(15, 17, 22)
-            frameTabBar.BackgroundColor3 = cTabBar
-            local pTabBar = UDim2.new(0, 0, 0, 0)
-            frameTabBar.Position = pTabBar
-            local sTabBar = UDim2.new(1, 0, 0, 35)
-            frameTabBar.Size = sTabBar
-            
-            local crTabBar = Instance.new("UICorner")
-            local rTabBar = UDim.new(0, 8)
-            crTabBar.CornerRadius = rTabBar
-            crTabBar.Parent = frameTabBar
+        local frameTabBar = Instance.new("Frame")
+        frameTabBar.Parent = frameExecCont
+        frameTabBar.BackgroundColor3 = Color3.fromRGB(15, 17, 22)
+        frameTabBar.Position = UDim2.new(0, 0, 0, 0)
+        frameTabBar.Size = UDim2.new(1, 0, 0, 35)
+        
+        local crTabBar = Instance.new("UICorner")
+        crTabBar.CornerRadius = UDim.new(0, 8)
+        crTabBar.Parent = frameTabBar
 
-            local scTabsNew = Instance.new("ScrollingFrame")
-            scTabsNew.Parent = frameTabBar
-            scTabsNew.BackgroundTransparency = 1
-            local pScrollTabs = UDim2.new(0, 0, 0, 0)
-            scTabsNew.Position = pScrollTabs
-            local sScrollTabs = UDim2.new(1, -40, 1, 0)
-            scTabsNew.Size = sScrollTabs
-            local csZeroTab = UDim2.new(0, 0, 0, 0)
-            scTabsNew.CanvasSize = csZeroTab
-            scTabsNew.AutomaticCanvasSize = Enum.AutomaticSize.X
-            scTabsNew.ScrollBarThickness = 0
-            scrollTabs = scTabsNew
+        scrollTabs = Instance.new("ScrollingFrame")
+        scrollTabs.Parent = frameTabBar
+        scrollTabs.BackgroundTransparency = 1
+        scrollTabs.Position = UDim2.new(0, 0, 0, 0)
+        scrollTabs.Size = UDim2.new(1, -40, 1, 0)
+        scrollTabs.CanvasSize = UDim2.new(0, 0, 0, 0)
+        scrollTabs.AutomaticCanvasSize = Enum.AutomaticSize.X
+        scrollTabs.ScrollBarThickness = 0
 
-            local listTabs = Instance.new("UIListLayout")
-            listTabs.Parent = scrollTabs
-            listTabs.FillDirection = Enum.FillDirection.Horizontal
-            listTabs.SortOrder = Enum.SortOrder.LayoutOrder
-            local padTabs = UDim.new(0, 5)
-            listTabs.Padding = padTabs
+        local listTabs = Instance.new("UIListLayout")
+        listTabs.Parent = scrollTabs
+        listTabs.FillDirection = Enum.FillDirection.Horizontal
+        listTabs.SortOrder = Enum.SortOrder.LayoutOrder
+        listTabs.Padding = UDim.new(0, 5)
 
-            local padScrollTabs = Instance.new("UIPadding")
-            padScrollTabs.Parent = scrollTabs
-            local pLScrollTabs = UDim.new(0, 5)
-            padScrollTabs.PaddingLeft = pLScrollTabs
-            local pTScrollTabs = UDim.new(0, 5)
-            padScrollTabs.PaddingTop = pTScrollTabs
-            
-            local btnAddTab = Instance.new("TextButton")
-            btnAddTab.Parent = frameTabBar
-            local cAddTab = Color3.fromRGB(30, 32, 45)
-            btnAddTab.BackgroundColor3 = cAddTab
-            local pAddTab = UDim2.new(1, -35, 0, 5)
-            btnAddTab.Position = pAddTab
-            local sAddTab = UDim2.new(0, 25, 0, 25)
-            btnAddTab.Size = sAddTab
-            btnAddTab.Font = Enum.Font.GothamBold
-            btnAddTab.Text = "+"
-            local ctAddTab = Color3.fromRGB(200, 200, 200)
-            btnAddTab.TextColor3 = ctAddTab
-            
-            local crAddTab = Instance.new("UICorner")
-            local rAddTab = UDim.new(0, 4)
-            crAddTab.CornerRadius = rAddTab
-            crAddTab.Parent = btnAddTab
+        local padScrollTabs = Instance.new("UIPadding")
+        padScrollTabs.Parent = scrollTabs
+        padScrollTabs.PaddingLeft = UDim.new(0, 5)
+        padScrollTabs.PaddingTop = UDim.new(0, 5)
+        
+        local btnAddTab = Instance.new("TextButton")
+        btnAddTab.Parent = frameTabBar
+        btnAddTab.BackgroundColor3 = Color3.fromRGB(30, 32, 45)
+        btnAddTab.Position = UDim2.new(1, -35, 0, 5)
+        btnAddTab.Size = UDim2.new(0, 25, 0, 25)
+        btnAddTab.Font = Enum.Font.GothamBold
+        btnAddTab.Text = "+"
+        btnAddTab.TextColor3 = Color3.fromRGB(200, 200, 200)
+        
+        local crAddTab = Instance.new("UICorner")
+        crAddTab.CornerRadius = UDim.new(0, 4)
+        crAddTab.Parent = btnAddTab
 
-            local bxNewCode = Instance.new("TextBox")
-            bxNewCode.Parent = frameExecCont
-            local cBoxExec = Color3.fromRGB(12, 14, 20)
-            bxNewCode.BackgroundColor3 = cBoxExec
-            local pBoxExec = UDim2.new(0, 10, 0, 45)
-            bxNewCode.Position = pBoxExec
-            local sBoxExec = UDim2.new(1, -20, 0, 140)
-            bxNewCode.Size = sBoxExec
-            bxNewCode.Font = Enum.Font.Code
-            bxNewCode.Text = ""
-            bxNewCode.PlaceholderText = ""
-            local ctBoxExec = Color3.fromRGB(220, 220, 220)
-            bxNewCode.TextColor3 = ctBoxExec
-            bxNewCode.TextSize = 12
-            bxNewCode.TextXAlignment = Enum.TextXAlignment.Left
-            bxNewCode.TextYAlignment = Enum.TextYAlignment.Top
-            bxNewCode.ClearTextOnFocus = false
-            bxNewCode.MultiLine = true
-            boxExecCode = bxNewCode
-            
-            local crBoxExec = Instance.new("UICorner")
-            local rBoxExec = UDim.new(0, 6)
-            crBoxExec.CornerRadius = rBoxExec
-            crBoxExec.Parent = boxExecCode
-            
-            local padBoxExec = Instance.new("UIPadding")
-            padBoxExec.Parent = boxExecCode
-            local plBoxExec = UDim.new(0, 5)
-            padBoxExec.PaddingLeft = plBoxExec
-            local ptBoxExec = UDim.new(0, 5)
-            padBoxExec.PaddingTop = ptBoxExec
+        boxExecCode = Instance.new("TextBox")
+        boxExecCode.Parent = frameExecCont
+        boxExecCode.BackgroundColor3 = Color3.fromRGB(12, 14, 20)
+        boxExecCode.Position = UDim2.new(0, 10, 0, 45)
+        boxExecCode.Size = UDim2.new(1, -20, 0, 140)
+        boxExecCode.Font = Enum.Font.Code
+        boxExecCode.Text = ""
+        boxExecCode.PlaceholderText = ""
+        boxExecCode.TextColor3 = Color3.fromRGB(220, 220, 220)
+        boxExecCode.TextSize = 12
+        boxExecCode.TextXAlignment = Enum.TextXAlignment.Left
+        boxExecCode.TextYAlignment = Enum.TextYAlignment.Top
+        boxExecCode.ClearTextOnFocus = false
+        boxExecCode.MultiLine = true
+        
+        local crBoxExec = Instance.new("UICorner")
+        crBoxExec.CornerRadius = UDim.new(0, 6)
+        crBoxExec.Parent = boxExecCode
+        
+        local padBoxExec = Instance.new("UIPadding")
+        padBoxExec.Parent = boxExecCode
+        padBoxExec.PaddingLeft = UDim.new(0, 5)
+        padBoxExec.PaddingTop = UDim.new(0, 5)
 
-            local frameActions = Instance.new("Frame")
-            frameActions.Parent = frameExecCont
-            frameActions.BackgroundTransparency = 1
-            local pActions = UDim2.new(0, 10, 0, 195)
-            frameActions.Position = pActions
-            local sActions = UDim2.new(1, -20, 0, 30)
-            frameActions.Size = sActions
+        local frameActions = Instance.new("Frame")
+        frameActions.Parent = frameExecCont
+        frameActions.BackgroundTransparency = 1
+        frameActions.Position = UDim2.new(0, 10, 0, 195)
+        frameActions.Size = UDim2.new(1, -20, 0, 30)
 
-            local btnExecLua = Instance.new("TextButton")
-            btnExecLua.Parent = frameActions
-            local cExecLua = Color3.fromRGB(50, 200, 100)
-            btnExecLua.BackgroundColor3 = cExecLua
-            local pExecLua = UDim2.new(0, 0, 0, 0)
-            btnExecLua.Position = pExecLua
-            local sExecLua = UDim2.new(0.3, 0, 1, 0)
-            btnExecLua.Size = sExecLua
-            btnExecLua.Font = Enum.Font.GothamBold
-            btnExecLua.Text = "Execute"
-            local ctExecLua = Color3.fromRGB(0, 0, 0)
-            btnExecLua.TextColor3 = ctExecLua
-            
-            local crExecLua = Instance.new("UICorner")
-            local rExecLua = UDim.new(0, 4)
-            crExecLua.CornerRadius = rExecLua
-            crExecLua.Parent = btnExecLua
+        local btnExecLua = Instance.new("TextButton")
+        btnExecLua.Parent = frameActions
+        btnExecLua.BackgroundColor3 = Color3.fromRGB(50, 200, 100)
+        btnExecLua.Position = UDim2.new(0, 0, 0, 0)
+        btnExecLua.Size = UDim2.new(0.3, 0, 1, 0)
+        btnExecLua.Font = Enum.Font.GothamBold
+        btnExecLua.Text = "Execute"
+        btnExecLua.TextColor3 = Color3.fromRGB(0, 0, 0)
+        
+        local crExecLua = Instance.new("UICorner")
+        crExecLua.CornerRadius = UDim.new(0, 4)
+        crExecLua.Parent = btnExecLua
 
-            local btnCopyLua = Instance.new("TextButton")
-            btnCopyLua.Parent = frameActions
-            local cCopyLua = Color3.fromRGB(30, 32, 45)
-            btnCopyLua.BackgroundColor3 = cCopyLua
-            local pCopyLua = UDim2.new(0.35, 0, 0, 0)
-            btnCopyLua.Position = pCopyLua
-            local sCopyLua = UDim2.new(0.3, 0, 1, 0)
-            btnCopyLua.Size = sCopyLua
-            btnCopyLua.Font = Enum.Font.GothamBold
-            btnCopyLua.Text = "Copy"
-            local ctCopyLua = Color3.fromRGB(255, 255, 255)
-            btnCopyLua.TextColor3 = ctCopyLua
-            
-            local crCopyLua = Instance.new("UICorner")
-            local rCopyLua = UDim.new(0, 4)
-            crCopyLua.CornerRadius = rCopyLua
-            crCopyLua.Parent = btnCopyLua
+        local btnCopyLua = Instance.new("TextButton")
+        btnCopyLua.Parent = frameActions
+        btnCopyLua.BackgroundColor3 = Color3.fromRGB(30, 32, 45)
+        btnCopyLua.Position = UDim2.new(0.35, 0, 0, 0)
+        btnCopyLua.Size = UDim2.new(0.3, 0, 1, 0)
+        btnCopyLua.Font = Enum.Font.GothamBold
+        btnCopyLua.Text = "Copy"
+        btnCopyLua.TextColor3 = Color3.fromRGB(255, 255, 255)
+        
+        local crCopyLua = Instance.new("UICorner")
+        crCopyLua.CornerRadius = UDim.new(0, 4)
+        crCopyLua.Parent = btnCopyLua
 
-            local btnClearLua = Instance.new("TextButton")
-            btnClearLua.Parent = frameActions
-            local cClearLua = Color3.fromRGB(200, 50, 50)
-            btnClearLua.BackgroundColor3 = cClearLua
-            local pClearLua = UDim2.new(0.7, 0, 0, 0)
-            btnClearLua.Position = pClearLua
-            local sClearLua = UDim2.new(0.3, 0, 1, 0)
-            btnClearLua.Size = sClearLua
-            btnClearLua.Font = Enum.Font.GothamBold
-            btnClearLua.Text = "Clear"
-            local ctClearLua = Color3.fromRGB(255, 255, 255)
-            btnClearLua.TextColor3 = ctClearLua
-            
-            local crClearLua = Instance.new("UICorner")
-            local rClearLua = UDim.new(0, 4)
-            crClearLua.CornerRadius = rClearLua
-            crClearLua.Parent = btnClearLua
+        local btnClearLua = Instance.new("TextButton")
+        btnClearLua.Parent = frameActions
+        btnClearLua.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+        btnClearLua.Position = UDim2.new(0.7, 0, 0, 0)
+        btnClearLua.Size = UDim2.new(0.3, 0, 1, 0)
+        btnClearLua.Font = Enum.Font.GothamBold
+        btnClearLua.Text = "Clear"
+        btnClearLua.TextColor3 = Color3.fromRGB(255, 255, 255)
+        
+        local crClearLua = Instance.new("UICorner")
+        crClearLua.CornerRadius = UDim.new(0, 4)
+        crClearLua.Parent = btnClearLua
 
-            local frameConsole = Instance.new("ScrollingFrame")
-            frameConsole.Parent = frameExecCont
-            local cConsole = Color3.fromRGB(10, 10, 12)
-            frameConsole.BackgroundColor3 = cConsole
-            local pConsole = UDim2.new(0, 10, 0, 235)
-            frameConsole.Position = pConsole
-            local sConsole = UDim2.new(1, -20, 0, 100)
-            frameConsole.Size = sConsole
-            frameConsole.ScrollBarThickness = 2
-            frameConsole.AutomaticCanvasSize = Enum.AutomaticSize.Y
-            
-            local crConsole = Instance.new("UICorner")
-            local rConsole = UDim.new(0, 4)
-            crConsole.CornerRadius = rConsole
-            crConsole.Parent = frameConsole
-            
-            local listConsole = Instance.new("UIListLayout")
-            listConsole.Parent = frameConsole
-            listConsole.SortOrder = Enum.SortOrder.LayoutOrder
-            
-            local padConsole = Instance.new("UIPadding")
-            padConsole.Parent = frameConsole
-            local plConsole = UDim.new(0, 5)
-            padConsole.PaddingLeft = plConsole
-            local ptConsole = UDim.new(0, 2)
-            padConsole.PaddingTop = ptConsole
+        frameConsoleLog = Instance.new("ScrollingFrame")
+        frameConsoleLog.Parent = frameExecCont
+        frameConsoleLog.BackgroundColor3 = Color3.fromRGB(10, 10, 12)
+        frameConsoleLog.Position = UDim2.new(0, 10, 0, 235)
+        frameConsoleLog.Size = UDim2.new(1, -20, 0, 100)
+        frameConsoleLog.ScrollBarThickness = 2
+        frameConsoleLog.AutomaticCanvasSize = Enum.AutomaticSize.Y
+        
+        local crConsole = Instance.new("UICorner")
+        crConsole.CornerRadius = UDim.new(0, 4)
+        crConsole.Parent = frameConsoleLog
+        
+        local listConsole = Instance.new("UIListLayout")
+        listConsole.Parent = frameConsoleLog
+        listConsole.SortOrder = Enum.SortOrder.LayoutOrder
+        
+        local padConsole = Instance.new("UIPadding")
+        padConsole.Parent = frameConsoleLog
+        padConsole.PaddingLeft = UDim.new(0, 5)
+        padConsole.PaddingTop = UDim.new(0, 2)
 
-            local btnCopyLogsAll = Instance.new("TextButton")
-            btnCopyLogsAll.Parent = frameExecCont
-            local cCpyLg = Color3.fromRGB(30, 32, 45)
-            btnCopyLogsAll.BackgroundColor3 = cCpyLg
-            local pCpyLg = UDim2.new(0, 10, 0, 345)
-            btnCopyLogsAll.Position = pCpyLg
-            local sCpyLg = UDim2.new(1, -20, 0, 30)
-            btnCopyLogsAll.Size = sCpyLg
-            btnCopyLogsAll.Font = Enum.Font.GothamBold
-            btnCopyLogsAll.Text = "Copy All Logs"
-            local ctCpyLg = Color3.fromRGB(255, 255, 255)
-            btnCopyLogsAll.TextColor3 = ctCpyLg
+        local btnCopyLogsAll = Instance.new("TextButton")
+        btnCopyLogsAll.Parent = frameExecCont
+        btnCopyLogsAll.BackgroundColor3 = Color3.fromRGB(30, 32, 45)
+        btnCopyLogsAll.Position = UDim2.new(0, 10, 0, 345)
+        btnCopyLogsAll.Size = UDim2.new(1, -20, 0, 30)
+        btnCopyLogsAll.Font = Enum.Font.GothamBold
+        btnCopyLogsAll.Text = "Copy All Logs"
+        btnCopyLogsAll.TextColor3 = Color3.fromRGB(255, 255, 255)
 
-            local crCpyLg = Instance.new("UICorner")
-            local rCpyLg = UDim.new(0, 4)
-            crCpyLg.CornerRadius = rCpyLg
-            crCpyLg.Parent = btnCopyLogsAll
+        local crCpyLg = Instance.new("UICorner")
+        crCpyLg.CornerRadius = UDim.new(0, 4)
+        crCpyLg.Parent = btnCopyLogsAll
 
-            local lblSpyTitle = Instance.new("TextLabel")
-            lblSpyTitle.Parent = frameExecCont
-            lblSpyTitle.BackgroundTransparency = 1
-            local pSpyT = UDim2.new(0, 10, 0, 385)
-            lblSpyTitle.Position = pSpyT
-            local sSpyT = UDim2.new(1, -20, 0, 20)
-            lblSpyTitle.Size = sSpyT
-            lblSpyTitle.Font = Enum.Font.GothamBold
-            lblSpyTitle.Text = "View All Player Messages"
-            local ctSpyT = Color3.fromRGB(200, 220, 255)
-            lblSpyTitle.TextColor3 = ctSpyT
-            lblSpyTitle.TextSize = 12
-            lblSpyTitle.TextXAlignment = Enum.TextXAlignment.Left
+        local lblSpyTitle = Instance.new("TextLabel")
+        lblSpyTitle.Parent = frameExecCont
+        lblSpyTitle.BackgroundTransparency = 1
+        lblSpyTitle.Position = UDim2.new(0, 10, 0, 385)
+        lblSpyTitle.Size = UDim2.new(1, -20, 0, 20)
+        lblSpyTitle.Font = Enum.Font.GothamBold
+        lblSpyTitle.Text = "View All Player Messages"
+        lblSpyTitle.TextColor3 = Color3.fromRGB(200, 220, 255)
+        lblSpyTitle.TextSize = 12
+        lblSpyTitle.TextXAlignment = Enum.TextXAlignment.Left
 
-            local frameSpyMsgs = Instance.new("ScrollingFrame")
-            frameSpyMsgs.Parent = frameExecCont
-            local cSpyM = Color3.fromRGB(10, 10, 12)
-            frameSpyMsgs.BackgroundColor3 = cSpyM
-            local pSpyM = UDim2.new(0, 10, 0, 410)
-            frameSpyMsgs.Position = pSpyM
-            local sSpyM = UDim2.new(1, -20, 0, 140)
-            frameSpyMsgs.Size = sSpyM
-            frameSpyMsgs.ScrollBarThickness = 2
-            frameSpyMsgs.AutomaticCanvasSize = Enum.AutomaticSize.Y
-            
-            local crSpyM = Instance.new("UICorner")
-            local rSpyM = UDim.new(0, 4)
-            crSpyM.CornerRadius = rSpyM
-            crSpyM.Parent = frameSpyMsgs
+        frameSpyChat = Instance.new("ScrollingFrame")
+        frameSpyChat.Parent = frameExecCont
+        frameSpyChat.BackgroundColor3 = Color3.fromRGB(10, 10, 12)
+        frameSpyChat.Position = UDim2.new(0, 10, 0, 410)
+        frameSpyChat.Size = UDim2.new(1, -20, 0, 140)
+        frameSpyChat.ScrollBarThickness = 2
+        frameSpyChat.AutomaticCanvasSize = Enum.AutomaticSize.Y
+        
+        local crSpyM = Instance.new("UICorner")
+        crSpyM.CornerRadius = UDim.new(0, 4)
+        crSpyM.Parent = frameSpyChat
 
-            local listSpy = Instance.new("UIListLayout")
-            listSpy.Parent = frameSpyMsgs
-            listSpy.SortOrder = Enum.SortOrder.LayoutOrder
+        local listSpy = Instance.new("UIListLayout")
+        listSpy.Parent = frameSpyChat
+        listSpy.SortOrder = Enum.SortOrder.LayoutOrder
 
-            local padSpy = Instance.new("UIPadding")
-            padSpy.Parent = frameSpyMsgs
-            local plSpy = UDim.new(0, 5)
-            padSpy.PaddingLeft = plSpy
-            local ptSpy = UDim.new(0, 2)
-            padSpy.PaddingTop = ptSpy
+        local padSpy = Instance.new("UIPadding")
+        padSpy.Parent = frameSpyChat
+        padSpy.PaddingLeft = UDim.new(0, 5)
+        padSpy.PaddingTop = UDim.new(0, 2)
 
-            local boxSpyInput = Instance.new("TextBox")
-            boxSpyInput.Parent = frameExecCont
-            local cSpyI = Color3.fromRGB(20, 21, 26)
-            boxSpyInput.BackgroundColor3 = cSpyI
-            local pSpyI = UDim2.new(0, 10, 0, 560)
-            boxSpyInput.Position = pSpyI
-            local sSpyI = UDim2.new(1, -90, 0, 30)
-            boxSpyInput.Size = sSpyI
-            boxSpyInput.Font = Enum.Font.Gotham
-            boxSpyInput.Text = ""
-            boxSpyInput.PlaceholderText = "Type message..."
-            local ctSpyI = Color3.fromRGB(255, 255, 255)
-            boxSpyInput.TextColor3 = ctSpyI
-            boxSpyInput.TextSize = 12
+        local boxSpyInput = Instance.new("TextBox")
+        boxSpyInput.Parent = frameExecCont
+        boxSpyInput.BackgroundColor3 = Color3.fromRGB(20, 21, 26)
+        boxSpyInput.Position = UDim2.new(0, 10, 0, 560)
+        boxSpyInput.Size = UDim2.new(1, -90, 0, 30)
+        boxSpyInput.Font = Enum.Font.Gotham
+        boxSpyInput.Text = ""
+        boxSpyInput.PlaceholderText = "Type message..."
+        boxSpyInput.TextColor3 = Color3.fromRGB(255, 255, 255)
+        boxSpyInput.TextSize = 12
 
-            local strSpyI = Instance.new("UIStroke")
-            strSpyI.Parent = boxSpyInput
-            local cStrSpyI = Color3.fromRGB(40, 45, 60)
-            strSpyI.Color = cStrSpyI
-            strSpyI.Thickness = 1
+        local strSpyI = Instance.new("UIStroke")
+        strSpyI.Parent = boxSpyInput
+        strSpyI.Color = Color3.fromRGB(40, 45, 60)
+        strSpyI.Thickness = 1
 
-            local crSpyI = Instance.new("UICorner")
-            local rSpyI = UDim.new(0, 4)
-            crSpyI.CornerRadius = rSpyI
-            crSpyI.Parent = boxSpyInput
+        local crSpyI = Instance.new("UICorner")
+        crSpyI.CornerRadius = UDim.new(0, 4)
+        crSpyI.Parent = boxSpyInput
 
-            local btnSpySend = Instance.new("TextButton")
-            btnSpySend.Parent = frameExecCont
-            local cSpyS = GlobalState.MainColor
-            btnSpySend.BackgroundColor3 = cSpyS
-            local pSpyS = UDim2.new(1, -70, 0, 560)
-            btnSpySend.Position = pSpyS
-            local sSpyS = UDim2.new(0, 60, 0, 30)
-            btnSpySend.Size = sSpyS
-            btnSpySend.Font = Enum.Font.GothamBold
-            btnSpySend.Text = "Send"
-            local ctSpyS = Color3.fromRGB(255, 255, 255)
-            btnSpySend.TextColor3 = ctSpyS
+        local btnSpySend = Instance.new("TextButton")
+        btnSpySend.Parent = frameExecCont
+        btnSpySend.BackgroundColor3 = GlobalState.MainColor
+        btnSpySend.Position = UDim2.new(1, -70, 0, 560)
+        btnSpySend.Size = UDim2.new(0, 60, 0, 30)
+        btnSpySend.Font = Enum.Font.GothamBold
+        btnSpySend.Text = "Send"
+        btnSpySend.TextColor3 = Color3.fromRGB(255, 255, 255)
 
-            local crSpyS = Instance.new("UICorner")
-            local rSpyS = UDim.new(0, 4)
-            crSpyS.CornerRadius = rSpyS
-            crSpyS.Parent = btnSpySend
+        local crSpyS = Instance.new("UICorner")
+        crSpyS.CornerRadius = UDim.new(0, 4)
+        crSpyS.Parent = btnSpySend
 
-            local connRsSpy = RunServiceAPI.RenderStepped:Connect(function()
-                local succRsSpy, errRsSpy = pcall(function()
-                    btnSpySend.BackgroundColor3 = GlobalState.MainColor
-                end)
+        RunServiceAPI.RenderStepped:Connect(function()
+            pcall(function()
+                btnSpySend.BackgroundColor3 = GlobalState.MainColor
             end)
-
-            local connAddTab = btnAddTab.MouseButton1Click:Connect(function()
-                local succAdd, errAdd = pcall(function()
-                    local currDataSave = ExecutorTabsData[currentActiveTabId]
-                    if currDataSave then
-                        local cbTextAdd = boxExecCode.Text
-                        currDataSave.Source = cbTextAdd
-                    end
-                    
-                    tabCounterTotal = tabCounterTotal + 1
-                    local newTabObj = {}
-                    local nNameTab = "Script " .. tostring(tabCounterTotal)
-                    newTabObj.Name = nNameTab
-                    newTabObj.Source = ""
-                    table.insert(ExecutorTabsData, newTabObj)
-                    
-                    local newLen = #ExecutorTabsData
-                    currentActiveTabId = newLen
-                    boxExecCode.Text = ""
-                    RefreshTabsRender()
-                end)
-            end)
-
-            local connExecLuaAct = btnExecLua.MouseButton1Click:Connect(function()
-                local succExecL, errExecL = pcall(function()
-                    local codeStrLua = boxExecCode.Text
-                    local hasLoadStr = false
-                    if loadstring then
-                        hasLoadStr = true
-                    end
-                    
-                    if hasLoadStr then
-                        local execFuncVar, errLoadL = loadstring(codeStrLua)
-                        if execFuncVar then
-                            local succR, errR = pcall(function()
-                                execFuncVar()
-                            end)
-                            local isNotSuccR = false
-                            if not succR then
-                                isNotSuccR = true
-                            end
-                            if isNotSuccR then
-                                local errMsg = "Runtime Error: " .. tostring(errR)
-                                TriggerNotificationUI("Executor", errMsg, 4)
-                            end
-                        end
-                        local isNotExecFuncVar = false
-                        if not execFuncVar then
-                            isNotExecFuncVar = true
-                        end
-                        if isNotExecFuncVar then
-                            local errSynMsg = "Syntax Error: " .. tostring(errLoadL)
-                            TriggerNotificationUI("Executor", errSynMsg, 4)
-                        end
-                    end
-                    local isNotHasLoadStr = false
-                    if not hasLoadStr then
-                        isNotHasLoadStr = true
-                    end
-                    if isNotHasLoadStr then
-                        TriggerNotificationUI("Executor", "Loadstring is not enabled/supported on this executor.", 4)
-                    end
-                end)
-            end)
-
-            local connCopyLuaAct = btnCopyLua.MouseButton1Click:Connect(function()
-                local succCpyL, errCpyL = pcall(function()
-                    local codeStrCopy = boxExecCode.Text
-                    local hasSetClip = false
-                    if setclipboard then
-                        hasSetClip = true
-                    end
-                    if hasSetClip then
-                        setclipboard(codeStrCopy)
-                        TriggerNotificationUI("Executor", "Code copied to clipboard.", 2)
-                    end
-                    local isNotHasSetClip = false
-                    if not hasSetClip then
-                        isNotHasSetClip = true
-                    end
-                    if isNotHasSetClip then
-                        TriggerNotificationUI("Executor", "Clipboard function not supported.", 3)
-                    end
-                end)
-            end)
-
-            local connClearLuaAct = btnClearLua.MouseButton1Click:Connect(function()
-                local succClrL, errClrL = pcall(function()
-                    boxExecCode.Text = ""
-                end)
-            end)
-
-            local connCodeChgAct = boxExecCode:GetPropertyChangedSignal("Text"):Connect(function()
-                local succCodeChg, errCodeChg = pcall(function()
-                    local currDataUpd = ExecutorTabsData[currentActiveTabId]
-                    if currDataUpd then
-                        local cbTextUpd = boxExecCode.Text
-                        currDataUpd.Source = cbTextUpd
-                    end
-                end)
-            end)
-
-            local connLogMsgAct = LogServiceAPI.MessageOut:Connect(function(msgLog, typeLog)
-                local succLogA, errLogA = pcall(function()
-                    local lblLog = Instance.new("TextLabel")
-                    lblLog.Parent = frameConsole
-                    lblLog.BackgroundTransparency = 1
-                    local sLblLog = UDim2.new(1, 0, 0, 15)
-                    lblLog.Size = sLblLog
-                    lblLog.Font = Enum.Font.Code
-                    lblLog.Text = msgLog
-                    lblLog.TextSize = 10
-                    lblLog.TextXAlignment = Enum.TextXAlignment.Left
-                    
-                    local isWarnType = false
-                    if typeLog == Enum.MessageType.MessageWarning then
-                        isWarnType = true
-                    end
-                    if isWarnType then
-                        local cWarnL = Color3.fromRGB(255, 200, 50)
-                        lblLog.TextColor3 = cWarnL
-                    end
-                    
-                    local isErrType = false
-                    if typeLog == Enum.MessageType.MessageError then
-                        isErrType = true
-                    end
-                    if isErrType then
-                        local cErrL = Color3.fromRGB(255, 50, 50)
-                        lblLog.TextColor3 = cErrL
-                    end
-                    
-                    local isInfoType = false
-                    if typeLog == Enum.MessageType.MessageInfo then
-                        isInfoType = true
-                    end
-                    if typeLog == Enum.MessageType.MessageOutput then
-                        isInfoType = true
-                    end
-                    if isInfoType then
-                        local cInfoL = Color3.fromRGB(200, 200, 200)
-                        lblLog.TextColor3 = cInfoL
-                    end
-                end)
-            end)
-
-            local connCopyAllLog = btnCopyLogsAll.MouseButton1Click:Connect(function()
-                local succCpyA, errCpyA = pcall(function()
-                    local fullLogText = ""
-                    local logChildren = frameConsole:GetChildren()
-                    for _, lgChild in pairs(logChildren) do
-                        local isTxtL = lgChild:IsA("TextLabel")
-                        if isTxtL then
-                            local lgTxt = lgChild.Text
-                            fullLogText = fullLogText .. lgTxt .. "\n"
-                        end
-                    end
-                    local hasSetCA = false
-                    if setclipboard then
-                        hasSetCA = true
-                    end
-                    if hasSetCA then
-                        setclipboard(fullLogText)
-                        TriggerNotificationUI("Logs", "All logs copied to clipboard.", 2)
-                    end
-                    local isNotSetCA = false
-                    if not hasSetCA then
-                        isNotSetCA = true
-                    end
-                    if isNotSetCA then
-                        TriggerNotificationUI("Logs", "Clipboard function not supported.", 3)
-                    end
-                end)
-            end)
-
-            local function processChatSpyLog(playerNameLog, playerTextLog)
-                local succChatSpy, errChatSpy = pcall(function()
-                    local lblSpy = Instance.new("TextLabel")
-                    lblSpy.Parent = frameSpyMsgs
-                    lblSpy.BackgroundTransparency = 1
-                    local sLblSpy = UDim2.new(1, 0, 0, 15)
-                    lblSpy.Size = sLblSpy
-                    lblSpy.Font = Enum.Font.Gotham
-                    local strCombineSpy = "[" .. playerNameLog .. "]: " .. playerTextLog
-                    lblSpy.Text = strCombineSpy
-                    lblSpy.TextSize = 12
-                    lblSpy.TextXAlignment = Enum.TextXAlignment.Left
-                    local cLblSpy = Color3.fromRGB(255, 255, 255)
-                    lblSpy.TextColor3 = cLblSpy
-                end)
-            end
-
-            local function hookPlayerChat(playerToHook)
-                local succHkChat, errHkChat = pcall(function()
-                    local connHkChat = playerToHook.Chatted:Connect(function(msgChatRecv)
-                        processChatSpyLog(playerToHook.Name, msgChatRecv)
-                    end)
-                end)
-            end
-
-            local plyListSpy = PlayersService:GetPlayers()
-            for _, pSpyInit in pairs(plyListSpy) do
-                hookPlayerChat(pSpyInit)
-            end
-
-            local connPlrAddSpy = PlayersService.PlayerAdded:Connect(function(newPlrSpy)
-                hookPlayerChat(newPlrSpy)
-            end)
-
-            local connSendSpy = btnSpySend.MouseButton1Click:Connect(function()
-                local succSendSpy, errSendSpy = pcall(function()
-                    local textToSend = boxSpyInput.Text
-                    local isLenValid = false
-                    local lenTx = string.len(textToSend)
-                    if lenTx > 0 then
-                        isLenValid = true
-                    end
-                    if isLenValid then
-                        local hasLegacyChat = false
-                        local defChatSys = ReplicatedStorageAPI:FindFirstChild("DefaultChatSystemChatEvents")
-                        if defChatSys then
-                            hasLegacyChat = true
-                        end
-                        if hasLegacyChat then
-                            local sayMsgEvt = defChatSys:FindFirstChild("SayMessageRequest")
-                            if sayMsgEvt then
-                                sayMsgEvt:FireServer(textToSend, "All")
-                            end
-                        end
-                        
-                        local isNotLegChat = false
-                        if not hasLegacyChat then
-                            isNotLegChat = true
-                        end
-                        if isNotLegChat then
-                            local txtChans = TextChatServiceAPI:FindFirstChild("TextChannels")
-                            if txtChans then
-                                local rbxGen = txtChans:FindFirstChild("RBXGeneral")
-                                if rbxGen then
-                                    rbxGen:SendAsync(textToSend)
-                                end
-                            end
-                        end
-                        
-                        boxSpyInput.Text = ""
-                    end
-                end)
-            end)
-
-            RefreshTabsRender()
         end)
-    end
 
-    SetupExecutorTabSystem()
+        btnAddTab.MouseButton1Click:Connect(function()
+            pcall(function()
+                local currDataSave = ExecutorTabsData[currentActiveTabId]
+                if currDataSave then
+                    currDataSave.Source = boxExecCode.Text
+                end
+                
+                tabCounterTotal = tabCounterTotal + 1
+                local newTabObj = {}
+                newTabObj.Name = "Script " .. tostring(tabCounterTotal)
+                newTabObj.Source = ""
+                table.insert(ExecutorTabsData, newTabObj)
+                
+                currentActiveTabId = #ExecutorTabsData
+                boxExecCode.Text = ""
+                RefreshTabsRender()
+            end)
+        end)
 
-    local FrameCUIBox = Instance.new("Frame")
+        btnExecLua.MouseButton1Click:Connect(function()
+            pcall(function()
+                if type(loadstring) == "function" then
+                    local execFuncVar, errLoadL = loadstring(boxExecCode.Text)
+                    if type(execFuncVar) == "function" then
+                        local succR, errR = pcall(function()
+                            execFuncVar()
+                        end)
+                        if not succR then
+                            TriggerNotificationUI("Executor", "Runtime Error: " .. tostring(errR), 4)
+                        end
+                    end
+                    if type(execFuncVar) ~= "function" then
+                        TriggerNotificationUI("Executor", "Syntax Error: " .. tostring(errLoadL), 4)
+                    end
+                end
+                if type(loadstring) ~= "function" then
+                    TriggerNotificationUI("Executor", "Loadstring is not enabled/supported on this executor.", 4)
+                end
+            end)
+        end)
+
+        btnCopyLua.MouseButton1Click:Connect(function()
+            pcall(function()
+                if type(setclipboard) == "function" then
+                    setclipboard(boxExecCode.Text)
+                    TriggerNotificationUI("Executor", "Code copied to clipboard.", 2)
+                end
+                if type(setclipboard) ~= "function" then
+                    TriggerNotificationUI("Executor", "Clipboard function not supported.", 3)
+                end
+            end)
+        end)
+
+        btnClearLua.MouseButton1Click:Connect(function()
+            pcall(function()
+                boxExecCode.Text = ""
+            end)
+        end)
+
+        boxExecCode:GetPropertyChangedSignal("Text"):Connect(function()
+            pcall(function()
+                local currDataUpd = ExecutorTabsData[currentActiveTabId]
+                if currDataUpd then
+                    currDataUpd.Source = boxExecCode.Text
+                end
+            end)
+        end)
+
+        LogServiceAPI.MessageOut:Connect(function(msgLog, typeLog)
+            pcall(function()
+                local lblLog = Instance.new("TextLabel")
+                lblLog.Parent = frameConsoleLog
+                lblLog.BackgroundTransparency = 1
+                lblLog.Size = UDim2.new(1, 0, 0, 15)
+                lblLog.Font = Enum.Font.Code
+                lblLog.Text = msgLog
+                lblLog.TextSize = 10
+                lblLog.TextXAlignment = Enum.TextXAlignment.Left
+                
+                if typeLog == Enum.MessageType.MessageWarning then
+                    lblLog.TextColor3 = Color3.fromRGB(255, 200, 50)
+                end
+                if typeLog == Enum.MessageType.MessageError then
+                    lblLog.TextColor3 = Color3.fromRGB(255, 50, 50)
+                end
+                if typeLog == Enum.MessageType.MessageInfo then
+                    lblLog.TextColor3 = Color3.fromRGB(200, 200, 200)
+                end
+                if typeLog == Enum.MessageType.MessageOutput then
+                    lblLog.TextColor3 = Color3.fromRGB(200, 200, 200)
+                end
+            end)
+        end)
+
+        btnCopyLogsAll.MouseButton1Click:Connect(function()
+            pcall(function()
+                local fullLogText = ""
+                for _, lgChild in pairs(frameConsoleLog:GetChildren()) do
+                    if lgChild:IsA("TextLabel") then
+                        fullLogText = fullLogText .. lgChild.Text .. "\n"
+                    end
+                end
+                if type(setclipboard) == "function" then
+                    setclipboard(fullLogText)
+                    TriggerNotificationUI("Logs", "All logs copied to clipboard.", 2)
+                end
+                if type(setclipboard) ~= "function" then
+                    TriggerNotificationUI("Logs", "Clipboard function not supported.", 3)
+                end
+            end)
+        end)
+
+        local function processChatSpyLog(playerNameLog, playerTextLog)
+            pcall(function()
+                local lblSpy = Instance.new("TextLabel")
+                lblSpy.Parent = frameSpyChat
+                lblSpy.BackgroundTransparency = 1
+                lblSpy.Size = UDim2.new(1, 0, 0, 15)
+                lblSpy.Font = Enum.Font.Gotham
+                lblSpy.Text = "[" .. playerNameLog .. "]: " .. playerTextLog
+                lblSpy.TextSize = 12
+                lblSpy.TextXAlignment = Enum.TextXAlignment.Left
+                lblSpy.TextColor3 = Color3.fromRGB(255, 255, 255)
+            end)
+        end
+
+        local function hookPlayerChat(playerToHook)
+            pcall(function()
+                playerToHook.Chatted:Connect(function(msgChatRecv)
+                    processChatSpyLog(playerToHook.Name, msgChatRecv)
+                end)
+            end)
+        end
+
+        for _, pSpyInit in pairs(PlayersService:GetPlayers()) do
+            hookPlayerChat(pSpyInit)
+        end
+
+        PlayersService.PlayerAdded:Connect(function(newPlrSpy)
+            hookPlayerChat(newPlrSpy)
+        end)
+
+        btnSpySend.MouseButton1Click:Connect(function()
+            pcall(function()
+                local textToSend = boxSpyInput.Text
+                if string.len(textToSend) > 0 then
+                    local defChatSys = ReplicatedStorageAPI:FindFirstChild("DefaultChatSystemChatEvents")
+                    if defChatSys then
+                        local sayMsgEvt = defChatSys:FindFirstChild("SayMessageRequest")
+                        if sayMsgEvt then
+                            sayMsgEvt:FireServer(textToSend, "All")
+                        end
+                    end
+                    
+                    if not defChatSys then
+                        local txtChans = TextChatServiceAPI:FindFirstChild("TextChannels")
+                        if txtChans then
+                            local rbxGen = txtChans:FindFirstChild("RBXGeneral")
+                            if rbxGen then
+                                rbxGen:SendAsync(textToSend)
+                            end
+                        end
+                    end
+                    
+                    boxSpyInput.Text = ""
+                end
+            end)
+        end)
+
+        RefreshTabsRender()
+    end)
+end
+
+local FrameCUIBox = Instance.new("Frame")
+pcall(function()
     FrameCUIBox.Parent = PageObjCustomUI
-    local cCUIB = Color3.fromRGB(20, 21, 26)
-    FrameCUIBox.BackgroundColor3 = cCUIB
-    local sCUIB = UDim2.new(1, -5, 0, 60)
-    FrameCUIBox.Size = sCUIB
+    FrameCUIBox.BackgroundColor3 = Color3.fromRGB(20, 21, 26)
+    FrameCUIBox.Size = UDim2.new(1, -5, 0, 60)
     local crCUIB = Instance.new("UICorner")
-    local rCUIB = UDim.new(0, 8)
-    crCUIB.CornerRadius = rCUIB
+    crCUIB.CornerRadius = UDim.new(0, 8)
     crCUIB.Parent = FrameCUIBox
 
     local StrCUIB = Instance.new("UIStroke")
     StrCUIB.Parent = FrameCUIBox
-    local cStrCUIB = GlobalState.MainColor
-    StrCUIB.Color = cStrCUIB
+    StrCUIB.Color = GlobalState.MainColor
     StrCUIB.Thickness = 2
 
     local LblCUIT = Instance.new("TextLabel")
     LblCUIT.Parent = FrameCUIBox
     LblCUIT.BackgroundTransparency = 1
-    local sCUIT = UDim2.new(1, 0, 1, 0)
-    LblCUIT.Size = sCUIT
+    LblCUIT.Size = UDim2.new(1, 0, 1, 0)
     LblCUIT.Font = Enum.Font.GothamBold
     LblCUIT.Text = "PREVIEW COLOR"
-    local cCUIT = GlobalState.MainColor
-    LblCUIT.TextColor3 = cCUIT
+    LblCUIT.TextColor3 = GlobalState.MainColor
     LblCUIT.TextSize = 14
 
     local TmpColorData = GlobalState.MainColor
@@ -3391,101 +3253,62 @@ local function SafeExecuteScript()
     local FrameCUIPal = Instance.new("Frame")
     FrameCUIPal.Parent = PageObjCustomUI
     FrameCUIPal.BackgroundTransparency = 1
-    local sCUIPal = UDim2.new(1, -5, 0, 150)
-    FrameCUIPal.Size = sCUIPal
+    FrameCUIPal.Size = UDim2.new(1, -5, 0, 150)
 
     local GridCUIPal = Instance.new("UIGridLayout")
     GridCUIPal.Parent = FrameCUIPal
-    local csCUIPal = UDim2.new(0, 30, 0, 30)
-    GridCUIPal.CellSize = csCUIPal
-    local cpCUIPal = UDim2.new(0, 5, 0, 5)
-    GridCUIPal.CellPadding = cpCUIPal
+    GridCUIPal.CellSize = UDim2.new(0, 30, 0, 30)
+    GridCUIPal.CellPadding = UDim2.new(0, 5, 0, 5)
     GridCUIPal.SortOrder = Enum.SortOrder.LayoutOrder
 
     local colorListTbl = {}
-    local cTbl1 = Color3.fromRGB(255,0,0)
-    table.insert(colorListTbl, cTbl1)
-    local cTbl2 = Color3.fromRGB(0,255,0)
-    table.insert(colorListTbl, cTbl2)
-    local cTbl3 = Color3.fromRGB(0,0,255)
-    table.insert(colorListTbl, cTbl3)
-    local cTbl4 = Color3.fromRGB(255,255,0)
-    table.insert(colorListTbl, cTbl4)
-    local cTbl5 = Color3.fromRGB(255,0,255)
-    table.insert(colorListTbl, cTbl5)
-    local cTbl6 = Color3.fromRGB(0,255,255)
-    table.insert(colorListTbl, cTbl6)
-    local cTbl7 = Color3.fromRGB(255,128,0)
-    table.insert(colorListTbl, cTbl7)
-    local cTbl8 = Color3.fromRGB(128,0,255)
-    table.insert(colorListTbl, cTbl8)
-    local cTbl9 = Color3.fromRGB(255,0,128)
-    table.insert(colorListTbl, cTbl9)
-    local cTbl10 = Color3.fromRGB(0,255,128)
-    table.insert(colorListTbl, cTbl10)
-    local cTbl11 = Color3.fromRGB(128,255,0)
-    table.insert(colorListTbl, cTbl11)
-    local cTbl12 = Color3.fromRGB(0,128,255)
-    table.insert(colorListTbl, cTbl12)
-    local cTbl13 = Color3.fromRGB(255,255,255)
-    table.insert(colorListTbl, cTbl13)
-    local cTbl14 = Color3.fromRGB(100,100,100)
-    table.insert(colorListTbl, cTbl14)
-    local cTbl15 = Color3.fromRGB(50,50,50)
-    table.insert(colorListTbl, cTbl15)
-    local cTbl16 = Color3.fromRGB(138,43,226)
-    table.insert(colorListTbl, cTbl16)
-    local cTbl17 = Color3.fromRGB(0,200,150)
-    table.insert(colorListTbl, cTbl17)
-    local cTbl18 = Color3.fromRGB(255,100,100)
-    table.insert(colorListTbl, cTbl18)
-    local cTbl19 = Color3.fromRGB(100,255,100)
-    table.insert(colorListTbl, cTbl19)
-    local cTbl20 = Color3.fromRGB(100,100,255)
-    table.insert(colorListTbl, cTbl20)
-    local cTbl21 = Color3.fromRGB(255,200,100)
-    table.insert(colorListTbl, cTbl21)
-    local cTbl22 = Color3.fromRGB(200,255,100)
-    table.insert(colorListTbl, cTbl22)
-    local cTbl23 = Color3.fromRGB(100,200,255)
-    table.insert(colorListTbl, cTbl23)
-    local cTbl24 = Color3.fromRGB(255,150,0)
-    table.insert(colorListTbl, cTbl24)
-    local cTbl25 = Color3.fromRGB(0,150,255)
-    table.insert(colorListTbl, cTbl25)
-    local cTbl26 = Color3.fromRGB(150,0,255)
-    table.insert(colorListTbl, cTbl26)
-    local cTbl27 = Color3.fromRGB(255,0,150)
-    table.insert(colorListTbl, cTbl27)
-    local cTbl28 = Color3.fromRGB(0,255,150)
-    table.insert(colorListTbl, cTbl28)
-    local cTbl29 = Color3.fromRGB(150,255,0)
-    table.insert(colorListTbl, cTbl29)
-    local cTbl30 = Color3.fromRGB(200,0,0)
-    table.insert(colorListTbl, cTbl30)
-    local cTbl31 = Color3.fromRGB(0,200,0)
-    table.insert(colorListTbl, cTbl31)
-    local cTbl32 = Color3.fromRGB(0,0,200)
-    table.insert(colorListTbl, cTbl32)
-    local cTbl33 = Color3.fromRGB(200,200,0)
-    table.insert(colorListTbl, cTbl33)
-    local cTbl34 = Color3.fromRGB(200,0,200)
-    table.insert(colorListTbl, cTbl34)
-    local cTbl35 = Color3.fromRGB(0,200,200)
-    table.insert(colorListTbl, cTbl35)
+    table.insert(colorListTbl, Color3.fromRGB(255,0,0))
+    table.insert(colorListTbl, Color3.fromRGB(0,255,0))
+    table.insert(colorListTbl, Color3.fromRGB(0,0,255))
+    table.insert(colorListTbl, Color3.fromRGB(255,255,0))
+    table.insert(colorListTbl, Color3.fromRGB(255,0,255))
+    table.insert(colorListTbl, Color3.fromRGB(0,255,255))
+    table.insert(colorListTbl, Color3.fromRGB(255,128,0))
+    table.insert(colorListTbl, Color3.fromRGB(128,0,255))
+    table.insert(colorListTbl, Color3.fromRGB(255,0,128))
+    table.insert(colorListTbl, Color3.fromRGB(0,255,128))
+    table.insert(colorListTbl, Color3.fromRGB(128,255,0))
+    table.insert(colorListTbl, Color3.fromRGB(0,128,255))
+    table.insert(colorListTbl, Color3.fromRGB(255,255,255))
+    table.insert(colorListTbl, Color3.fromRGB(100,100,100))
+    table.insert(colorListTbl, Color3.fromRGB(50,50,50))
+    table.insert(colorListTbl, Color3.fromRGB(138,43,226))
+    table.insert(colorListTbl, Color3.fromRGB(0,200,150))
+    table.insert(colorListTbl, Color3.fromRGB(255,100,100))
+    table.insert(colorListTbl, Color3.fromRGB(100,255,100))
+    table.insert(colorListTbl, Color3.fromRGB(100,100,255))
+    table.insert(colorListTbl, Color3.fromRGB(255,200,100))
+    table.insert(colorListTbl, Color3.fromRGB(200,255,100))
+    table.insert(colorListTbl, Color3.fromRGB(100,200,255))
+    table.insert(colorListTbl, Color3.fromRGB(255,150,0))
+    table.insert(colorListTbl, Color3.fromRGB(0,150,255))
+    table.insert(colorListTbl, Color3.fromRGB(150,0,255))
+    table.insert(colorListTbl, Color3.fromRGB(255,0,150))
+    table.insert(colorListTbl, Color3.fromRGB(0,255,150))
+    table.insert(colorListTbl, Color3.fromRGB(150,255,0))
+    table.insert(colorListTbl, Color3.fromRGB(200,0,0))
+    table.insert(colorListTbl, Color3.fromRGB(0,200,0))
+    table.insert(colorListTbl, Color3.fromRGB(0,0,200))
+    table.insert(colorListTbl, Color3.fromRGB(200,200,0))
+    table.insert(colorListTbl, Color3.fromRGB(200,0,200))
+    table.insert(colorListTbl, Color3.fromRGB(0,200,200))
 
-    for indexCol, colorVal in ipairs(colorListTbl) do
+    for _, colorVal in ipairs(colorListTbl) do
         local btnColPlt = Instance.new("TextButton")
         btnColPlt.Parent = FrameCUIPal
         btnColPlt.BackgroundColor3 = colorVal
         btnColPlt.Text = ""
         local crColPlt = Instance.new("UICorner")
-        local rColPlt = UDim.new(0, 4)
-        crColPlt.CornerRadius = rColPlt
+        crColPlt.CornerRadius = UDim.new(0, 4)
         crColPlt.Parent = btnColPlt
         
-        local connColPlt = btnColPlt.MouseButton1Click:Connect(function()
-            local successClickCol, errorClickCol = pcall(function()
+        btnColPlt.MouseButton1Click:Connect(function()
+            pcall(function()
                 TmpColorData = colorVal
                 StrCUIB.Color = TmpColorData
                 LblCUIT.TextColor3 = TmpColorData
@@ -3493,10 +3316,10 @@ local function SafeExecuteScript()
         end)
     end
 
-    local DualCUI1 = CreateDualSwitchMenu(PageObjCustomUI, "RGB Gaming Modern", "RGBGaming")
+    CreateDualSwitchMenu(PageObjCustomUI, "RGB Gaming Modern", "RGBGaming")
 
-    local BtnCUI1 = CreateButtonMenu(PageObjCustomUI, "Test Notify Custom", "Main", function()
-        local successCUI1, errorCUI1 = pcall(function()
+    CreateButtonMenu(PageObjCustomUI, "Test Notify Custom", "Main", function()
+        pcall(function()
             local oldColorSav = GlobalState.MainColor
             GlobalState.MainColor = TmpColorData
             TriggerNotificationUI("Test Custom", "This is how it looks!", 3)
@@ -3504,60 +3327,44 @@ local function SafeExecuteScript()
         end)
     end, nil)
 
-    local cGrnCui = Color3.fromRGB(50, 200, 100)
-    local BtnCUI2 = CreateButtonMenu(PageObjCustomUI, "Apply Change", cGrnCui, function()
-        local successCUI2, errorCUI2 = pcall(function()
+    CreateButtonMenu(PageObjCustomUI, "Apply Change", Color3.fromRGB(50, 200, 100), function()
+        pcall(function()
             GlobalState.MainColor = TmpColorData
             SaveConfigurationData()
             TriggerNotificationUI("Theme Saved", "Colors applied successfully.", 3)
         end)
     end, nil)
 
-    local cRedCui = Color3.fromRGB(200, 50, 50)
-    local BtnCUI3 = CreateButtonMenu(PageObjCustomUI, "Cancel", cRedCui, function()
-        local successCUI3, errorCUI3 = pcall(function()
-            local currColSave = GlobalState.MainColor
-            TmpColorData = currColSave
+    CreateButtonMenu(PageObjCustomUI, "Cancel", Color3.fromRGB(200, 50, 50), function()
+        pcall(function()
+            TmpColorData = GlobalState.MainColor
             StrCUIB.Color = TmpColorData
             LblCUIT.TextColor3 = TmpColorData
         end)
     end, nil)
 
-    local DualSet1 = CreateDualSwitchMenu(PageObjSettings, "Performance Mode (HP Kentang)", "PerformanceMode")
+    CreateDualSwitchMenu(PageObjSettings, "Performance Mode (HP Kentang)", "PerformanceMode")
 
     local tpWalkingStateFly = false
     local FlyBVIns = nil
     local FlyBGIns = nil
 
-    local connRsFly = RunServiceAPI.RenderStepped:Connect(function()
-        local successRsFly, errorRsFly = pcall(function()
-            local isFlyOn = GlobalState.Fly
-            if isFlyOn then
-                local isNotTpWalking = false
+    RunServiceAPI.RenderStepped:Connect(function()
+        pcall(function()
+            if GlobalState.Fly then
                 if not tpWalkingStateFly then
-                    isNotTpWalking = true
-                end
-                if isNotTpWalking then
                     local charFly1 = LocalPlayerInstance.Character
                     local humFly1 = nil
                     local rootFly1 = nil
                     local torsoFly1 = nil
                     
                     if charFly1 then
-                        local findHum = charFly1:FindFirstChildWhichIsA("Humanoid")
-                        humFly1 = findHum
-                        local findRoot = charFly1:FindFirstChild("HumanoidRootPart")
-                        rootFly1 = findRoot
-                        local findTorso = charFly1:FindFirstChild("Torso")
-                        local isNotFindTorso = false
-                        if not findTorso then
-                            isNotFindTorso = true
+                        humFly1 = charFly1:FindFirstChildWhichIsA("Humanoid")
+                        rootFly1 = charFly1:FindFirstChild("HumanoidRootPart")
+                        torsoFly1 = charFly1:FindFirstChild("Torso")
+                        if not torsoFly1 then
+                            torsoFly1 = charFly1:FindFirstChild("UpperTorso")
                         end
-                        if isNotFindTorso then
-                            local findUTorso = charFly1:FindFirstChild("UpperTorso")
-                            findTorso = findUTorso
-                        end
-                        torsoFly1 = findTorso
                     end
                     
                     local hasAllFly1 = false
@@ -3578,18 +3385,14 @@ local function SafeExecuteScript()
                             FlyBGIns:Destroy() 
                         end
                         
-                        local newBGFly = Instance.new("BodyGyro")
-                        FlyBGIns = newBGFly
+                        FlyBGIns = Instance.new("BodyGyro")
                         FlyBGIns.Parent = torsoFly1
                         FlyBGIns.P = 9e4
-                        local torqVecFly = Vector3.new(9e9, 9e9, 9e9)
-                        FlyBGIns.MaxTorque = torqVecFly
+                        FlyBGIns.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
                         
-                        local newBVFly = Instance.new("BodyVelocity")
-                        FlyBVIns = newBVFly
+                        FlyBVIns = Instance.new("BodyVelocity")
                         FlyBVIns.Parent = torsoFly1
-                        local maxFVecFly = Vector3.new(9e9, 9e9, 9e9)
-                        FlyBVIns.MaxForce = maxFVecFly
+                        FlyBVIns.MaxForce = Vector3.new(9e9, 9e9, 9e9)
                         
                         humFly1.PlatformStand = true
                         local animCharFly = charFly1:FindFirstChild("Animate")
@@ -3597,19 +3400,14 @@ local function SafeExecuteScript()
                             animCharFly.Disabled = true
                         end
                         
-                        local animTracksFly = humFly1:GetPlayingAnimationTracks()
-                        for indexFlyT, trackFlyT in pairs(animTracksFly) do
+                        for _, trackFlyT in pairs(humFly1:GetPlayingAnimationTracks()) do
                             trackFlyT:Stop()
                         end
                     end
                 end
             end
             
-            local isFlyOff = false
-            if not isFlyOn then
-                isFlyOff = true
-            end
-            if isFlyOff then
+            if not GlobalState.Fly then
                 if tpWalkingStateFly then
                     tpWalkingStateFly = false
                     if FlyBVIns then 
@@ -3624,8 +3422,7 @@ local function SafeExecuteScript()
                         local humFly2 = charFly2:FindFirstChildWhichIsA("Humanoid")
                         if humFly2 then 
                             humFly2.PlatformStand = false 
-                            local gUpEnum = Enum.HumanoidStateType.GettingUp
-                            humFly2:ChangeState(gUpEnum) 
+                            humFly2:ChangeState(Enum.HumanoidStateType.GettingUp) 
                         end
                         local animCharFly2 = charFly2:FindFirstChild("Animate")
                         if animCharFly2 then 
@@ -3635,82 +3432,45 @@ local function SafeExecuteScript()
                 end
             end
 
-            if isFlyOn then
+            if GlobalState.Fly then
                 if tpWalkingStateFly then
-                    local isBvValid = false
                     if FlyBVIns then
-                        isBvValid = true
-                    end
-                    local isBgValid = false
-                    if FlyBGIns then
-                        isBgValid = true
-                    end
-                    local isBothValid = false
-                    if isBvValid then
-                        if isBgValid then
-                            isBothValid = true
-                        end
-                    end
-                    
-                    if isBothValid then
-                        local charFly3 = LocalPlayerInstance.Character
-                        local humFly3 = nil
-                        if charFly3 then
-                            local fHumFly3 = charFly3:FindFirstChild("Humanoid")
-                            humFly3 = fHumFly3
-                        end
-                        
-                        if humFly3 then
-                            local camCFFly = CameraInstance.CFrame
-                            FlyBGIns.CFrame = camCFFly
-                            local moveDirFly = humFly3.MoveDirection
-                            
-                            local mDirMagFly = moveDirFly.Magnitude
-                            local isMovingFly = false
-                            if mDirMagFly > 0 then
-                                isMovingFly = true
+                        if FlyBGIns then
+                            local charFly3 = LocalPlayerInstance.Character
+                            local humFly3 = nil
+                            if charFly3 then
+                                humFly3 = charFly3:FindFirstChild("Humanoid")
                             end
                             
-                            if isMovingFly then
-                                local cLookXFly = CameraInstance.CFrame.LookVector.X
-                                local cLookZFly = CameraInstance.CFrame.LookVector.Z
-                                local camLookFlatVecFly = Vector3.new(cLookXFly, 0, cLookZFly)
-                                local camLookFlatFly = camLookFlatVecFly.Unit
+                            if humFly3 then
+                                FlyBGIns.CFrame = CameraInstance.CFrame
+                                local moveDirFly = humFly3.MoveDirection
                                 
-                                local cRightXFly = CameraInstance.CFrame.RightVector.X
-                                local cRightZFly = CameraInstance.CFrame.RightVector.Z
-                                local camRightFlatVecFly = Vector3.new(cRightXFly, 0, cRightZFly)
-                                local camRightFlatFly = camRightFlatVecFly.Unit
-                                
-                                local fwdMoveFly = moveDirFly:Dot(camLookFlatFly)
-                                local rgtMoveFly = moveDirFly:Dot(camRightFlatFly)
-                                
-                                local cLookVecFly = CameraInstance.CFrame.LookVector
-                                local fwdVecFly = cLookVecFly * fwdMoveFly
-                                local cRightVecFly = CameraInstance.CFrame.RightVector
-                                local rgtVecFly = cRightVecFly * rgtMoveFly
-                                local flyDirFly = fwdVecFly + rgtVecFly
-                                
-                                local flyDirMagFly = flyDirFly.Magnitude
-                                local isMagGrZero = false
-                                if flyDirMagFly > 0 then
-                                    isMagGrZero = true
+                                if moveDirFly.Magnitude > 0 then
+                                    local cLookXFly = CameraInstance.CFrame.LookVector.X
+                                    local cLookZFly = CameraInstance.CFrame.LookVector.Z
+                                    local camLookFlatFly = Vector3.new(cLookXFly, 0, cLookZFly).Unit
+                                    
+                                    local cRightXFly = CameraInstance.CFrame.RightVector.X
+                                    local cRightZFly = CameraInstance.CFrame.RightVector.Z
+                                    local camRightFlatFly = Vector3.new(cRightXFly, 0, cRightZFly).Unit
+                                    
+                                    local fwdMoveFly = moveDirFly:Dot(camLookFlatFly)
+                                    local rgtMoveFly = moveDirFly:Dot(camRightFlatFly)
+                                    
+                                    local fwdVecFly = CameraInstance.CFrame.LookVector * fwdMoveFly
+                                    local rgtVecFly = CameraInstance.CFrame.RightVector * rgtMoveFly
+                                    local flyDirFly = fwdVecFly + rgtVecFly
+                                    
+                                    if flyDirFly.Magnitude > 0 then 
+                                        flyDirFly = flyDirFly.Unit 
+                                    end
+                                    
+                                    FlyBVIns.Velocity = flyDirFly * (GlobalState.FlySpeed * 50)
                                 end
-                                if isMagGrZero then 
-                                    flyDirFly = flyDirFly.Unit 
+                                if moveDirFly.Magnitude <= 0 then
+                                    FlyBVIns.Velocity = Vector3.new(0, 0, 0)
                                 end
-                                
-                                local flSpdFly = GlobalState.FlySpeed * 50
-                                local flVelFly = flyDirFly * flSpdFly
-                                FlyBVIns.Velocity = flVelFly
-                            end
-                            local isNotMovingFly = false
-                            if not isMovingFly then
-                                isNotMovingFly = true
-                            end
-                            if isNotMovingFly then
-                                local zeroVelFly = Vector3.new(0, 0, 0)
-                                FlyBVIns.Velocity = zeroVelFly
                             end
                         end
                     end
@@ -3721,7 +3481,7 @@ local function SafeExecuteScript()
 
     local EspDataStorage = {}
     local isHasDrawingApi = false
-    local successDraw, errorDraw = pcall(function() 
+    pcall(function() 
         local testLineDr = Drawing.new("Line") 
         isHasDrawingApi = true
         testLineDr:Remove()
@@ -3729,11 +3489,9 @@ local function SafeExecuteScript()
 
     local FOVCircleInst = nil
     if isHasDrawingApi then
-        local successFovCr, errorFovCr = pcall(function()
-            local drCircleFov = Drawing.new("Circle")
-            FOVCircleInst = drCircleFov
-            local colWhFov = Color3.fromRGB(255, 255, 255)
-            FOVCircleInst.Color = colWhFov
+        pcall(function()
+            FOVCircleInst = Drawing.new("Circle")
+            FOVCircleInst.Color = Color3.fromRGB(255, 255, 255)
             FOVCircleInst.Thickness = 1.5
             FOVCircleInst.Filled = false
             FOVCircleInst.Transparency = 1
@@ -3742,31 +3500,19 @@ local function SafeExecuteScript()
 
     local function GetClosestPlayerLogic()
         local targetPlr = nil
-        local successGCP, errorGCP = pcall(function()
+        pcall(function()
             local shortDistPlr = GlobalState.Aim_FOVSize
-            local camVXPlr = CameraInstance.ViewportSize.X / 2
-            local camVYPlr = CameraInstance.ViewportSize.Y / 2
-            local centerScreenPlr = Vector2.new(camVXPlr, camVYPlr)
+            local centerScreenPlr = Vector2.new(CameraInstance.ViewportSize.X / 2, CameraInstance.ViewportSize.Y / 2)
             
-            local pTablePlr = PlayersService:GetPlayers()
-            for indexPTable, pPlrLoop in pairs(pTablePlr) do
+            for _, pPlrLoop in pairs(PlayersService:GetPlayers()) do
                 local isValidTargetPlr = false
-                local isNotLocalLp = false
                 if pPlrLoop ~= LocalPlayerInstance then
-                    isNotLocalLp = true
-                end
-                if isNotLocalLp then
                     local charPPlr = pPlrLoop.Character
                     if charPPlr then
                         local pHumPPlr = charPPlr:FindFirstChild("Humanoid")
-                        local aimPtPPlr = GlobalState.Aim_Part
-                        local pPartPPlr = charPPlr:FindFirstChild(aimPtPPlr)
+                        local pPartPPlr = charPPlr:FindFirstChild(GlobalState.Aim_Part)
                         if pHumPPlr then
-                            local isHumPPlrAlive = false
                             if pHumPPlr.Health > 0 then
-                                isHumPPlrAlive = true
-                            end
-                            if isHumPPlrAlive then
                                 if pPartPPlr then
                                     isValidTargetPlr = true
                                 end
@@ -3776,18 +3522,12 @@ local function SafeExecuteScript()
                 end
                 
                 if isValidTargetPlr then
-                    local aimPtPPlr2 = GlobalState.Aim_Part
-                    local partPosPPlr = pPlrLoop.Character[aimPtPPlr2].Position
+                    local partPosPPlr = pPlrLoop.Character[GlobalState.Aim_Part].Position
                     local vPPlr, onSPPlr = CameraInstance:WorldToViewportPoint(partPosPPlr)
                     if onSPPlr then
-                        local vVecPPlr = Vector2.new(vPPlr.X, vPPlr.Y)
-                        local vecDistPPlr = vVecPPlr - centerScreenPlr
+                        local vecDistPPlr = Vector2.new(vPPlr.X, vPPlr.Y) - centerScreenPlr
                         local dMagPPlr = vecDistPPlr.Magnitude
-                        local isCloserPPlr = false
                         if dMagPPlr < shortDistPlr then
-                            isCloserPPlr = true
-                        end
-                        if isCloserPPlr then 
                             targetPlr = pPlrLoop
                             shortDistPlr = dMagPPlr 
                         end
@@ -3799,143 +3539,94 @@ local function SafeExecuteScript()
     end
 
     local OldNamecallHk = nil
-    local getNmCallHk = nil
-    local succNmCall, errNmCall = pcall(function()
-        getNmCallHk = getnamecallmethod
-    end)
-    local hkMetaHk = nil
-    local succHkMeta, errHkMeta = pcall(function()
-        hkMetaHk = hookmetamethod
-    end)
-
-    local isBothHkValid = false
-    if getNmCallHk then
-        if hkMetaHk then
-            isBothHkValid = true
-        end
-    end
-
-    if isBothHkValid then
-        local succMetaSetup, errMetaSetup = pcall(function()
-            OldNamecallHk = hkMetaHk(game, "__namecall", function(selfParam, ...)
-                local methodHk = getNmCallHk()
-                local argsHk = {...}
-                
-                local isStateAimHk = GlobalState.Aimbot
-                local isStateSlntHk = GlobalState.SilentAim
-                local isChCallerHk = checkcaller()
-                
-                local isOkHk = false
-                if isStateAimHk then
-                    if isStateSlntHk then
-                        local isNotChCallerHk = false
-                        if not isChCallerHk then
-                            isNotChCallerHk = true
+    pcall(function()
+        if type(getnamecallmethod) == "function" then
+            if type(hookmetamethod) == "function" then
+                OldNamecallHk = hookmetamethod(game, "__namecall", function(selfParam, ...)
+                    local methodHk = getnamecallmethod()
+                    local argsHk = {...}
+                    
+                    local isOkHk = false
+                    if GlobalState.Aimbot then
+                        if GlobalState.SilentAim then
+                            if type(checkcaller) == "function" then
+                                if not checkcaller() then
+                                    isOkHk = true
+                                end
+                            end
                         end
-                        if isNotChCallerHk then
-                            isOkHk = true
-                        end
-                    end
-                end
-                
-                if isOkHk then
-                    local isFindHk = false
-                    if methodHk == "FindPartOnRayWithIgnoreList" then
-                        isFindHk = true
-                    end
-                    if methodHk == "Raycast" then
-                        isFindHk = true
                     end
                     
-                    if isFindHk then
-                        local closestHk = GetClosestPlayerLogic()
-                        if closestHk then
-                            local charHk = closestHk.Character
-                            if charHk then
-                                local aimPtHk = GlobalState.Aim_Part
-                                local cPartHk = charHk:FindFirstChild(aimPtHk)
-                                if cPartHk then
-                                    local targetPosHk = charHk[aimPtHk].Position
-                                    
-                                    local isRcHk = false
-                                    if methodHk == "Raycast" then
-                                        isRcHk = true
-                                    end
-                                    if isRcHk then
-                                        local originHk1 = argsHk[1]
-                                        local tarSubHk1 = targetPosHk - originHk1
-                                        local tarUnitHk1 = tarSubHk1.Unit
-                                        local dirVecHk1 = tarUnitHk1 * 1000
-                                        argsHk[2] = dirVecHk1
-                                        return OldNamecallHk(selfParam, unpack(argsHk))
-                                    end
-                                    
-                                    local isFPRHk = false
-                                    if methodHk == "FindPartOnRayWithIgnoreList" then
-                                        isFPRHk = true
-                                    end
-                                    if isFPRHk then
-                                        local originHk2 = argsHk[1].Origin
-                                        local tarSubHk2 = targetPosHk - originHk2
-                                        local tarUnitHk2 = tarSubHk2.Unit
-                                        local dirVecHk2 = tarUnitHk2 * 1000
-                                        local newRayHk2 = Ray.new(originHk2, dirVecHk2)
-                                        argsHk[1] = newRayHk2
-                                        return OldNamecallHk(selfParam, unpack(argsHk))
+                    if isOkHk then
+                        local isFindHk = false
+                        if methodHk == "FindPartOnRayWithIgnoreList" then
+                            isFindHk = true
+                        end
+                        if methodHk == "Raycast" then
+                            isFindHk = true
+                        end
+                        
+                        if isFindHk then
+                            local closestHk = GetClosestPlayerLogic()
+                            if closestHk then
+                                local charHk = closestHk.Character
+                                if charHk then
+                                    local cPartHk = charHk:FindFirstChild(GlobalState.Aim_Part)
+                                    if cPartHk then
+                                        local targetPosHk = charHk[GlobalState.Aim_Part].Position
+                                        
+                                        if methodHk == "Raycast" then
+                                            local originHk1 = argsHk[1]
+                                            argsHk[2] = (targetPosHk - originHk1).Unit * 1000
+                                            return OldNamecallHk(selfParam, unpack(argsHk))
+                                        end
+                                        
+                                        if methodHk == "FindPartOnRayWithIgnoreList" then
+                                            local originHk2 = argsHk[1].Origin
+                                            argsHk[1] = Ray.new(originHk2, (targetPosHk - originHk2).Unit * 1000)
+                                            return OldNamecallHk(selfParam, unpack(argsHk))
+                                        end
                                     end
                                 end
                             end
                         end
                     end
-                end
-                return OldNamecallHk(selfParam, ...)
-            end)
-        end)
-    end
+                    return OldNamecallHk(selfParam, ...)
+                end)
+            end
+        end
+    end)
 
     local function CreateESPLogic(playerEsp)
-        local successCrEsp, errorCrEsp = pcall(function()
+        pcall(function()
             local espTb = {}
-            local hlEsp = Instance.new("Highlight")
-            espTb.Highlight = hlEsp
-            local colRedESEsp = Color3.fromRGB(255, 50, 50)
-            espTb.Highlight.FillColor = colRedESEsp
-            local colWhESEsp = Color3.fromRGB(255, 255, 255)
-            espTb.Highlight.OutlineColor = colWhESEsp
+            espTb.Highlight = Instance.new("Highlight")
+            espTb.Highlight.FillColor = Color3.fromRGB(255, 50, 50)
+            espTb.Highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
             espTb.Highlight.FillTransparency = 0.5
             espTb.Highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
             
             if isHasDrawingApi then
-                local trEsp = Drawing.new("Line")
-                espTb.Tracer = trEsp
+                espTb.Tracer = Drawing.new("Line")
                 espTb.Tracer.Thickness = 1.5
-                local trColEsp = Color3.fromRGB(255, 255, 255)
-                espTb.Tracer.Color = trColEsp
+                espTb.Tracer.Color = Color3.fromRGB(255, 255, 255)
                 
-                local bxEsp = Drawing.new("Square")
-                espTb.Box = bxEsp
+                espTb.Box = Drawing.new("Square")
                 espTb.Box.Thickness = 1.5
-                local bxColEsp = Color3.fromRGB(255, 50, 50)
-                espTb.Box.Color = bxColEsp
+                espTb.Box.Color = Color3.fromRGB(255, 50, 50)
                 espTb.Box.Filled = false
                 
-                local hbgEsp = Drawing.new("Line")
-                espTb.HealthBg = hbgEsp
+                espTb.HealthBg = Drawing.new("Line")
                 espTb.HealthBg.Thickness = 3
-                local hbgColEsp = Color3.fromRGB(0, 0, 0)
-                espTb.HealthBg.Color = hbgColEsp
+                espTb.HealthBg.Color = Color3.fromRGB(0, 0, 0)
                 
-                local hflEsp = Drawing.new("Line")
-                espTb.HealthFill = hflEsp
+                espTb.HealthFill = Drawing.new("Line")
                 espTb.HealthFill.Thickness = 1.5
-                local hflColEsp = Color3.fromRGB(0, 255, 100)
-                espTb.HealthFill.Color = hflColEsp
+                espTb.HealthFill.Color = Color3.fromRGB(0, 255, 100)
                 
-                local txtDEsp = Drawing.new("Text")
-                espTb.Text = txtDEsp
+                espTb.Text = Drawing.new("Text")
                 espTb.Text.Size = 14
-                local txtColEsp = Color3.fromRGB(255, 255, 255)
-                espTb.Text.Color = txtColEsp
+                espTb.Text.Color = Color3.fromRGB(255, 255, 255)
                 espTb.Text.Center = true
                 espTb.Text.Outline = true
             end
@@ -3944,7 +3635,7 @@ local function SafeExecuteScript()
     end
 
     local function RemoveESPLogic(playerEspRm)
-        local successRmEsp, errorRmEsp = pcall(function()
+        pcall(function()
             local espP = EspDataStorage[playerEspRm]
             if espP then
                 if espP.Highlight then 
@@ -3962,19 +3653,13 @@ local function SafeExecuteScript()
         end)
     end
     
-    local connPlyRm = PlayersService.PlayerRemoving:Connect(RemoveESPLogic)
+    PlayersService.PlayerRemoving:Connect(RemoveESPLogic)
 
-    local connRsEspMain = RunServiceAPI.RenderStepped:Connect(function()
-        local successRsEspM, errorRsEspM = pcall(function()
+    RunServiceAPI.RenderStepped:Connect(function()
+        pcall(function()
             if CameraInstance then
-                local cFovCam = CameraInstance.FieldOfView
-                local sPovCam = GlobalState.POV
-                local isNotEqualCam = false
-                if cFovCam ~= sPovCam then
-                    isNotEqualCam = true
-                end
-                if isNotEqualCam then 
-                    CameraInstance.FieldOfView = sPovCam 
+                if CameraInstance.FieldOfView ~= GlobalState.POV then
+                    CameraInstance.FieldOfView = GlobalState.POV 
                 end
             end
 
@@ -3989,11 +3674,9 @@ local function SafeExecuteScript()
             if FOVCircleInst then
                 FOVCircleInst.Position = centerScreenCam
                 FOVCircleInst.Radius = GlobalState.Aim_FOVSize
-                local aimStFov = GlobalState.Aimbot
-                local fovStFov = GlobalState.Aim_ShowFOV
                 local combStFov = false
-                if aimStFov then
-                    if fovStFov then
+                if GlobalState.Aimbot then
+                    if GlobalState.Aim_ShowFOV then
                         combStFov = true
                     end
                 end
@@ -4001,24 +3684,14 @@ local function SafeExecuteScript()
                 if combStFov then
                     FOVCircleInst.Visible = true
                 end
-                local isNotCombStFov = false
                 if not combStFov then
-                    isNotCombStFov = true
-                end
-                if isNotCombStFov then
                     FOVCircleInst.Visible = false
                 end
             end
             
-            local aimOnM = GlobalState.Aimbot
-            local sAimOnM = GlobalState.SilentAim
             local canAimM = false
-            if aimOnM then
-                local isNotSAimOnM = false
-                if not sAimOnM then
-                    isNotSAimOnM = true
-                end
-                if isNotSAimOnM then
+            if GlobalState.Aimbot then
+                if not GlobalState.SilentAim then
                     canAimM = true
                 end
             end
@@ -4026,36 +3699,23 @@ local function SafeExecuteScript()
             if canAimM then
                 local targetM = GetClosestPlayerLogic()
                 if targetM then 
-                    local aimPtM = GlobalState.Aim_Part
-                    local pPartPosM = targetM.Character[aimPtM].Position
-                    local camPosM = CameraInstance.CFrame.Position
-                    local newCFM = CFrame.new(camPosM, pPartPosM)
-                    local lrpCFM = CameraInstance.CFrame:Lerp(newCFM, 0.2)
-                    CameraInstance.CFrame = lrpCFM 
+                    local pPartPosM = targetM.Character[GlobalState.Aim_Part].Position
+                    CameraInstance.CFrame = CameraInstance.CFrame:Lerp(CFrame.new(CameraInstance.CFrame.Position, pPartPosM), 0.2) 
                 end
             end
 
-            local isEspStOnM = GlobalState.ESP
-            if isEspStOnM then
-                local pTableM = PlayersService:GetPlayers()
-                for _, playerM in pairs(pTableM) do
-                    local isNotLPM = false
+            if GlobalState.ESP then
+                for _, playerM in pairs(PlayersService:GetPlayers()) do
                     if playerM ~= LocalPlayerInstance then
-                        isNotLPM = true
-                    end
-                    if isNotLPM then
                         local charM = playerM.Character
                         local rootM = nil
                         local headM = nil
                         local humM = nil
                         
                         if charM then
-                            local rtM = charM:FindFirstChild("HumanoidRootPart")
-                            rootM = rtM
-                            local hdM = charM:FindFirstChild("Head")
-                            headM = hdM
-                            local hmM = charM:FindFirstChild("Humanoid")
-                            humM = hmM
+                            rootM = charM:FindFirstChild("HumanoidRootPart")
+                            headM = charM:FindFirstChild("Head")
+                            humM = charM:FindFirstChild("Humanoid")
                         end
                         
                         local isOkCM = false
@@ -4063,11 +3723,7 @@ local function SafeExecuteScript()
                             if rootM then
                                 if headM then
                                     if humM then
-                                        local isHumLifeM = false
                                         if humM.Health > 0 then
-                                            isHumLifeM = true
-                                        end
-                                        if isHumLifeM then
                                             isOkCM = true
                                         end
                                     end
@@ -4076,116 +3732,57 @@ local function SafeExecuteScript()
                         end
                         
                         if isOkCM then
-                            local espPM = EspDataStorage[playerM]
-                            local isNotEspPM = false
-                            if not espPM then
-                                isNotEspPM = true
-                            end
-                            if isNotEspPM then 
+                            if not EspDataStorage[playerM] then
                                 CreateESPLogic(playerM) 
                             end
                             local espM = EspDataStorage[playerM]
                             
-                            local isChamsStM = GlobalState.ESP_Chams
-                            if isChamsStM then
-                                local hlPM = espM.Highlight.Parent
-                                local isNotCharM = false
-                                if hlPM ~= charM then
-                                    isNotCharM = true
-                                end
-                                if isNotCharM then 
+                            if GlobalState.ESP_Chams then
+                                if espM.Highlight.Parent ~= charM then
                                     espM.Highlight.Parent = charM 
                                 end
                             end
-                            local isNotChamsStM = false
-                            if not isChamsStM then
-                                isNotChamsStM = true
-                            end
-                            if isNotChamsStM then
-                                local hlPM2 = espM.Highlight.Parent
-                                if hlPM2 then 
+                            if not GlobalState.ESP_Chams then
+                                if espM.Highlight.Parent then
                                     espM.Highlight.Parent = nil 
                                 end
                             end
                             
                             if isHasDrawingApi then
-                                local rPosM = rootM.Position
-                                local rootPosM, onScreenM = CameraInstance:WorldToViewportPoint(rPosM)
-                                local hdPosCM = headM.Position
-                                local hdOffsetM = Vector3.new(0, 0.5, 0)
-                                local headPosCM = hdPosCM + hdOffsetM
-                                local headPosM, zGarbage1 = CameraInstance:WorldToViewportPoint(headPosCM)
-                                local legOffsetM = Vector3.new(0, 3, 0)
-                                local legPosCM = rPosM - legOffsetM
-                                local legPosM, zGarbage2 = CameraInstance:WorldToViewportPoint(legPosCM)
+                                local rootPosM, onScreenM = CameraInstance:WorldToViewportPoint(rootM.Position)
+                                local headPosM, zGarbage1 = CameraInstance:WorldToViewportPoint(headM.Position + Vector3.new(0, 0.5, 0))
+                                local legPosM, zGarbage2 = CameraInstance:WorldToViewportPoint(rootM.Position - Vector3.new(0, 3, 0))
                                 
                                 if onScreenM then
-                                    local hdYM = headPosM.Y
-                                    local lgYM = legPosM.Y
-                                    local ySubM = hdYM - lgYM
-                                    local boxHeightM = math.abs(ySubM)
+                                    local boxHeightM = math.abs(headPosM.Y - legPosM.Y)
                                     local boxWidthM = boxHeightM / 2
                                     
-                                    local bVecM = Vector2.new(boxWidthM, boxHeightM)
-                                    espM.Box.Size = bVecM
-                                    local rtXM = rootPosM.X
-                                    local bW2M = boxWidthM / 2
-                                    local xSubM = rtXM - bW2M
-                                    local pVecM = Vector2.new(xSubM, hdYM)
-                                    espM.Box.Position = pVecM
-                                    local esBxStM = GlobalState.ESP_Box
-                                    espM.Box.Visible = esBxStM
+                                    espM.Box.Size = Vector2.new(boxWidthM, boxHeightM)
+                                    espM.Box.Position = Vector2.new(rootPosM.X - boxWidthM / 2, headPosM.Y)
+                                    espM.Box.Visible = GlobalState.ESP_Box
                                     
-                                    local trFM = Vector2.new(cxCam, CameraInstance.ViewportSize.Y)
-                                    espM.Tracer.From = trFM
-                                    local trTM = Vector2.new(rtXM, lgYM)
-                                    espM.Tracer.To = trTM
-                                    local esTrStM = GlobalState.ESP_Tracer
-                                    espM.Tracer.Visible = esTrStM
+                                    espM.Tracer.From = Vector2.new(cxCam, CameraInstance.ViewportSize.Y)
+                                    espM.Tracer.To = Vector2.new(rootPosM.X, legPosM.Y)
+                                    espM.Tracer.Visible = GlobalState.ESP_Tracer
                                     
-                                    local hHM = humM.Health
-                                    local mHM = humM.MaxHealth
-                                    local hpM = hHM / mHM
+                                    local hpM = humM.Health / humM.MaxHealth
                                     local hhM = boxHeightM * hpM
                                     
-                                    local hbgFM = Vector2.new(espM.Box.Position.X - 5, lgYM)
-                                    espM.HealthBg.From = hbgFM
-                                    local hbgTM = Vector2.new(espM.Box.Position.X - 5, hdYM)
-                                    espM.HealthBg.To = hbgTM
-                                    local esHlStM = GlobalState.ESP_Health
-                                    espM.HealthBg.Visible = esHlStM
+                                    espM.HealthBg.From = Vector2.new(espM.Box.Position.X - 5, legPosM.Y)
+                                    espM.HealthBg.To = Vector2.new(espM.Box.Position.X - 5, headPosM.Y)
+                                    espM.HealthBg.Visible = GlobalState.ESP_Health
                                     
-                                    local hflFM = Vector2.new(espM.Box.Position.X - 5, lgYM)
-                                    espM.HealthFill.From = hflFM
-                                    local lgSubHHM = lgYM - hhM
-                                    local hflTM = Vector2.new(espM.Box.Position.X - 5, lgSubHHM)
-                                    espM.HealthFill.To = hflTM
+                                    espM.HealthFill.From = Vector2.new(espM.Box.Position.X - 5, legPosM.Y)
+                                    espM.HealthFill.To = Vector2.new(espM.Box.Position.X - 5, legPosM.Y - hhM)
+                                    espM.HealthFill.Color = Color3.fromRGB(255 - (hpM * 255), hpM * 255, 0)
+                                    espM.HealthFill.Visible = GlobalState.ESP_Health
                                     
-                                    local hpMMult = hpM * 255
-                                    local rColM = 255 - hpMMult
-                                    local gColM = hpMMult
-                                    local finalColM = Color3.fromRGB(rColM, gColM, 0)
-                                    espM.HealthFill.Color = finalColM
-                                    espM.HealthFill.Visible = esHlStM
-                                    
-                                    local camPM = CameraInstance.CFrame.Position
-                                    local dSubM = camPM - rPosM
-                                    local dMagM = dSubM.Magnitude
-                                    local distMathM = math.floor(dMagM)
-                                    local pNameM = playerM.DisplayName
-                                    local fTxtM = pNameM .. " [" .. distMathM .. "m]"
-                                    espM.Text.Text = fTxtM
-                                    local hdY20M = hdYM - 20
-                                    local tVecM = Vector2.new(rtXM, hdY20M)
-                                    espM.Text.Position = tVecM
-                                    local esNmStM = GlobalState.ESP_Name
-                                    espM.Text.Visible = esNmStM
+                                    local distMathM = math.floor((CameraInstance.CFrame.Position - rootM.Position).Magnitude)
+                                    espM.Text.Text = playerM.DisplayName .. " [" .. distMathM .. "m]"
+                                    espM.Text.Position = Vector2.new(rootPosM.X, headPosM.Y - 20)
+                                    espM.Text.Visible = GlobalState.ESP_Name
                                 end
-                                local isNotOnScreenM = false
                                 if not onScreenM then
-                                    isNotOnScreenM = true
-                                end
-                                if isNotOnScreenM then
                                     espM.Box.Visible = false
                                     espM.Tracer.Visible = false
                                     espM.HealthBg.Visible = false
@@ -4195,12 +3792,7 @@ local function SafeExecuteScript()
                             end
                         end
                         
-                        local notOkCM = false
                         if not isOkCM then
-                            notOkCM = true
-                        end
-                        
-                        if notOkCM then
                             local espPMFail = EspDataStorage[playerM]
                             if espPMFail then
                                 if espPMFail.Highlight then 
@@ -4218,13 +3810,8 @@ local function SafeExecuteScript()
                     end
                 end
             end
-            local isNotEspStOnM = false
-            if not isEspStOnM then
-                isNotEspStOnM = true
-            end
-            if isNotEspStOnM then
-                local espDM = EspDataStorage
-                for playerRm, zValRm in pairs(espDM) do 
+            if not GlobalState.ESP then
+                for playerRm, _ in pairs(EspDataStorage) do 
                     RemoveESPLogic(playerRm) 
                 end
             end
@@ -4234,106 +3821,66 @@ local function SafeExecuteScript()
     local flingBavInst = nil
     local flingV3ConnInst = nil
 
-    local connRsFling = RunServiceAPI.RenderStepped:Connect(function()
-        local successRsFlg, errorRsFlg = pcall(function()
+    RunServiceAPI.RenderStepped:Connect(function()
+        pcall(function()
             local charFlgRs = LocalPlayerInstance.Character
             local hrpFlgRs = nil
             if charFlgRs then
-                local hTempFlgRs = charFlgRs:FindFirstChild("HumanoidRootPart")
-                hrpFlgRs = hTempFlgRs
+                hrpFlgRs = charFlgRs:FindFirstChild("HumanoidRootPart")
             end
             
-            local f2OnRs = GlobalState.FlingV2
-            local sfOnRs = GlobalState.SuperFling
             local isFlingOnRs = false
-            if f2OnRs then
+            if GlobalState.FlingV2 then
                 isFlingOnRs = true
             end
-            if sfOnRs then
+            if GlobalState.SuperFling then
                 isFlingOnRs = true
             end
             
             if isFlingOnRs then
                 if hrpFlgRs then
-                    local isNotBavFlgRs = false
                     if not flingBavInst then
-                        isNotBavFlgRs = true
-                    end
-                    if isNotBavFlgRs then
-                        local bNewFlgRs = Instance.new("BodyAngularVelocity")
-                        flingBavInst = bNewFlgRs
+                        flingBavInst = Instance.new("BodyAngularVelocity")
                         flingBavInst.Name = "XayzFling"
-                        local mHFlgRs = math.huge
-                        local tqVecFlgRs = Vector3.new(0, mHFlgRs, 0)
-                        flingBavInst.MaxTorque = tqVecFlgRs
-                        flingBavInst.P = mHFlgRs
+                        flingBavInst.MaxTorque = Vector3.new(0, math.huge, 0)
+                        flingBavInst.P = math.huge
                         flingBavInst.Parent = hrpFlgRs
                     end
                     
-                    if sfOnRs then
-                        local sfVecRs = Vector3.new(0, 999999, 0)
-                        flingBavInst.AngularVelocity = sfVecRs
+                    if GlobalState.SuperFling then
+                        flingBavInst.AngularVelocity = Vector3.new(0, 999999, 0)
                     end
-                    local isNotSfOnRs = false
-                    if not sfOnRs then
-                        isNotSfOnRs = true
-                    end
-                    if isNotSfOnRs then
-                        local fSpdRs = GlobalState.FlingPower * 100
-                        local fVecRs = Vector3.new(0, fSpdRs, 0)
-                        flingBavInst.AngularVelocity = fVecRs
+                    if not GlobalState.SuperFling then
+                        flingBavInst.AngularVelocity = Vector3.new(0, GlobalState.FlingPower * 100, 0)
                     end
                 end
             end
-            local isNotFlingOnRs = false
             if not isFlingOnRs then
-                isNotFlingOnRs = true
-            end
-            if isNotFlingOnRs then
                 if flingBavInst then
                     flingBavInst:Destroy()
                     flingBavInst = nil
                 end
                 if hrpFlgRs then
-                    local zVecRs = Vector3.new(0, 0, 0)
-                    hrpFlgRs.RotVelocity = zVecRs
+                    hrpFlgRs.RotVelocity = Vector3.new(0, 0, 0)
                 end
             end
 
-            local isFlgV3OnRs = GlobalState.FlingV3
-            if isFlgV3OnRs then
+            if GlobalState.FlingV3 then
                 if hrpFlgRs then
-                    local isNotFlgV3Conn = false
                     if not flingV3ConnInst then
-                        isNotFlgV3Conn = true
-                    end
-                    if isNotFlgV3Conn then
-                        local charDFlgV3 = charFlgRs:GetDescendants()
-                        for _, vFlgV3 in pairs(charDFlgV3) do
-                            local isBpFlgV3 = vFlgV3:IsA("BasePart")
-                            if isBpFlgV3 then
-                                local ppNewFlgV3 = PhysicalProperties.new(100, 0, 0, 0, 0)
-                                vFlgV3.CustomPhysicalProperties = ppNewFlgV3
+                        for _, vFlgV3 in pairs(charFlgRs:GetDescendants()) do
+                            if vFlgV3:IsA("BasePart") then
+                                vFlgV3.CustomPhysicalProperties = PhysicalProperties.new(100, 0, 0, 0, 0)
                             end
                         end
-                        local evtTouchFlgV3 = hrpFlgRs.Touched
-                        flingV3ConnInst = evtTouchFlgV3:Connect(function(hitFlgV3)
-                            local successTouchV3, errorTouchV3 = pcall(function()
-                                local pntFlgV3 = hitFlgV3.Parent
-                                if pntFlgV3 then
-                                    local pHumFlgV3 = pntFlgV3:FindFirstChild("Humanoid")
-                                    local pNmFlgV3 = pntFlgV3.Name
-                                    local lpNmFlgV3 = LocalPlayerInstance.Name
-                                    local isNotLpFlgV3 = false
-                                    if pNmFlgV3 ~= lpNmFlgV3 then
-                                        isNotLpFlgV3 = true
-                                    end
-                                    if pHumFlgV3 then
-                                        if isNotLpFlgV3 then
-                                            local vRootFlgV3 = pntFlgV3:FindFirstChild("HumanoidRootPart")
+                        flingV3ConnInst = hrpFlgRs.Touched:Connect(function(hitFlgV3)
+                            pcall(function()
+                                if hitFlgV3.Parent then
+                                    if hitFlgV3.Parent:FindFirstChild("Humanoid") then
+                                        if hitFlgV3.Parent.Name ~= LocalPlayerInstance.Name then
+                                            local vRootFlgV3 = hitFlgV3.Parent:FindFirstChild("HumanoidRootPart")
                                             if vRootFlgV3 then
-                                                local vVecFlgV3 = Vector3.new(999999999, 999999999, 999999999)
-                                                vRootFlgV3.Velocity = vVecFlgV3
+                                                vRootFlgV3.Velocity = Vector3.new(999999999, 999999999, 999999999)
                                             end
                                         end
                                     end
@@ -4343,11 +3890,7 @@ local function SafeExecuteScript()
                     end
                 end
             end
-            local isNotFlgV3OnRs = false
-            if not isFlgV3OnRs then
-                isNotFlgV3OnRs = true
-            end
-            if isNotFlgV3OnRs then
+            if not GlobalState.FlingV3 then
                 if flingV3ConnInst then
                     flingV3ConnInst:Disconnect()
                     flingV3ConnInst = nil
@@ -4356,28 +3899,22 @@ local function SafeExecuteScript()
         end)
     end)
 
-    local connHbMisc = RunServiceAPI.Heartbeat:Connect(function()
-        local successHbMisc, errorHbMisc = pcall(function()
+    RunServiceAPI.Heartbeat:Connect(function()
+        pcall(function()
             local charMisc = LocalPlayerInstance.Character
             if charMisc then
                 local humMisc = charMisc:FindFirstChildOfClass("Humanoid")
                 if humMisc then
-                    local isHealLoopM = GlobalState.HealLoop
-                    if isHealLoopM then
-                        local mHlM = humMisc.MaxHealth
-                        humMisc.Health = mHlM
+                    if GlobalState.HealLoop then
+                        humMisc.Health = humMisc.MaxHealth
                     end
-                    local isGodModeM = GlobalState.GodModeV4
-                    if isGodModeM then
-                        local infHM = math.huge
-                        humMisc.MaxHealth = infHM
-                        humMisc.Health = infHM
+                    if GlobalState.GodModeV4 then
+                        humMisc.MaxHealth = math.huge
+                        humMisc.Health = math.huge
                     end
                     
                     local wScM = humMisc:FindFirstChild("BodyWidthScale")
                     local dScM = humMisc:FindFirstChild("BodyDepthScale")
-                    local wAvM = GlobalState.WideAvatar
-                    
                     local isScValidM = false
                     if wScM then
                         if dScM then
@@ -4386,8 +3923,8 @@ local function SafeExecuteScript()
                     end
                     
                     if isScValidM then
-                        wScM.Value = wAvM
-                        dScM.Value = wAvM
+                        wScM.Value = GlobalState.WideAvatar
+                        dScM.Value = GlobalState.WideAvatar
                     end
                 end
             end
@@ -4399,43 +3936,35 @@ local function SafeExecuteScript()
     local AnchorAttLogic = nil
 
     local function GetAnchorSetupLogic()
-        local isValAnc = false
-        if AnchorPartLogic then
-            if AnchorPartLogic.Parent then
-                isValAnc = true
+        pcall(function()
+            local isValAnc = false
+            if AnchorPartLogic then
+                if AnchorPartLogic.Parent then
+                    isValAnc = true
+                end
             end
-        end
-        local isNotValAnc = false
-        if not isValAnc then
-            isNotValAnc = true
-        end
-        if isNotValAnc then
-            local fNewAnc = Instance.new("Folder")
-            fNewAnc.Parent = WorkspaceService
-            local pNewAnc = Instance.new("Part")
-            AnchorPartLogic = pNewAnc
-            AnchorPartLogic.Name = "XayzAnchor"
-            AnchorPartLogic.Anchored = true
-            AnchorPartLogic.CanCollide = false
-            AnchorPartLogic.Transparency = 1
-            AnchorPartLogic.Parent = fNewAnc
-            
-            local aNewAnc = Instance.new("Attachment")
-            AnchorAttLogic = aNewAnc
-            AnchorAttLogic.Parent = AnchorPartLogic
-        end
+            if not isValAnc then
+                local fNewAnc = Instance.new("Folder")
+                fNewAnc.Parent = WorkspaceService
+                AnchorPartLogic = Instance.new("Part")
+                AnchorPartLogic.Name = "XayzAnchor"
+                AnchorPartLogic.Anchored = true
+                AnchorPartLogic.CanCollide = false
+                AnchorPartLogic.Transparency = 1
+                AnchorPartLogic.Parent = fNewAnc
+                
+                AnchorAttLogic = Instance.new("Attachment")
+                AnchorAttLogic.Parent = AnchorPartLogic
+            end
+        end)
         return AnchorPartLogic, AnchorAttLogic
     end
 
-    local spawnBypass = task.spawn(function()
-        local successBp, errorBp = pcall(function()
-            local connHeartBp = RunServiceAPI.Heartbeat:Connect(function()
-                local succSetH, errSetH = pcall(function()
-                    local isSetHValid = false
-                    if sethiddenproperty then
-                        isSetHValid = true
-                    end
-                    if isSetHValid then
+    task.spawn(function()
+        pcall(function()
+            RunServiceAPI.Heartbeat:Connect(function()
+                pcall(function()
+                    if type(sethiddenproperty) == "function" then
                         sethiddenproperty(LocalPlayerInstance, "SimulationRadius", math.huge)
                     end
                 end)
@@ -4457,94 +3986,48 @@ local function SafeExecuteScript()
     local hdFiredSt = false
 
     local function ForcePartBHLogic(vPartBH, aAttBH)
-        local successFP, errorFP = pcall(function()
-            local isPBH = vPartBH:IsA("Part")
-            if isPBH then
-                local isAncBH = vPartBH.Anchored
-                local isNotAncBH = false
-                if not isAncBH then
-                    isNotAncBH = true
-                end
-                if isNotAncBH then
+        pcall(function()
+            if vPartBH:IsA("Part") then
+                if not vPartBH.Anchored then
                     local pntBH = vPartBH.Parent
                     local fHumBH = nil
                     local fHdBH = nil
                     if pntBH then
-                        local hmmBH = pntBH:FindFirstChild("Humanoid")
-                        fHumBH = hmmBH
-                        local hddBH = pntBH:FindFirstChild("Head")
-                        fHdBH = hddBH
+                        fHumBH = pntBH:FindFirstChild("Humanoid")
+                        fHdBH = pntBH:FindFirstChild("Head")
                     end
-                    local isNotFHumBH = false
                     if not fHumBH then
-                        isNotFHumBH = true
-                    end
-                    if isNotFHumBH then
-                        local isNotFhDBH = false
                         if not fHdBH then
-                            isNotFhDBH = true
-                        end
-                        if isNotFhDBH then
-                            local vNmBH = vPartBH.Name
-                            local isNotHandleBH = false
-                            if vNmBH ~= "Handle" then
-                                isNotHandleBH = true
-                            end
-                            if isNotHandleBH then
-                                local chBH = vPartBH:GetChildren()
-                                for _, xBH in pairs(chBH) do
-                                    local b1BH = xBH:IsA("BodyAngularVelocity")
-                                    local b2BH = xBH:IsA("BodyForce")
-                                    local b3BH = xBH:IsA("BodyGyro")
-                                    local b4BH = xBH:IsA("BodyPosition")
-                                    local b5BH = xBH:IsA("BodyThrust")
-                                    local b6BH = xBH:IsA("BodyVelocity")
-                                    local b7BH = xBH:IsA("RocketPropulsion")
+                            if vPartBH.Name ~= "Handle" then
+                                for _, xBH in pairs(vPartBH:GetChildren()) do
                                     local delBH = false
-                                    if b1BH then
-                                        delBH = true
-                                    end
-                                    if b2BH then
-                                        delBH = true
-                                    end
-                                    if b3BH then
-                                        delBH = true
-                                    end
-                                    if b4BH then
-                                        delBH = true
-                                    end
-                                    if b5BH then
-                                        delBH = true
-                                    end
-                                    if b6BH then
-                                        delBH = true
-                                    end
-                                    if b7BH then
-                                        delBH = true
-                                    end
+                                    if xBH:IsA("BodyAngularVelocity") then delBH = true end
+                                    if xBH:IsA("BodyForce") then delBH = true end
+                                    if xBH:IsA("BodyGyro") then delBH = true end
+                                    if xBH:IsA("BodyPosition") then delBH = true end
+                                    if xBH:IsA("BodyThrust") then delBH = true end
+                                    if xBH:IsA("BodyVelocity") then delBH = true end
+                                    if xBH:IsA("RocketPropulsion") then delBH = true end
                                     if delBH then
                                         xBH:Destroy()
                                     end
                                 end
-                                local fABH = vPartBH:FindFirstChild("Attachment")
-                                if fABH then
-                                    fABH:Destroy()
+                                if vPartBH:FindFirstChild("Attachment") then
+                                    vPartBH:FindFirstChild("Attachment"):Destroy()
                                 end
-                                local fAlBH = vPartBH:FindFirstChild("AlignPosition")
-                                if fAlBH then
-                                    fAlBH:Destroy()
+                                if vPartBH:FindFirstChild("AlignPosition") then
+                                    vPartBH:FindFirstChild("AlignPosition"):Destroy()
                                 end
-                                local fTBH = vPartBH:FindFirstChild("Torque")
-                                if fTBH then
-                                    fTBH:Destroy()
+                                if vPartBH:FindFirstChild("Torque") then
+                                    vPartBH:FindFirstChild("Torque"):Destroy()
                                 end
                                 
                                 vPartBH.CanCollide = false
+                                vPartBH.Massless = true
                                 
                                 local tqBH = Instance.new("Torque")
                                 tqBH.Parent = vPartBH
-                                local tqVBH = Vector3.new(1000000, 1000000, 1000000)
-                                tqBH.Torque = tqVBH
+                                tqBH.Torque = Vector3.new(1000000, 1000000, 1000000)
                                 
                                 local alBH = Instance.new("AlignPosition")
                                 alBH.Parent = vPartBH
@@ -4552,9 +4035,8 @@ local function SafeExecuteScript()
                                 a2BH.Parent = vPartBH
                                 tqBH.Attachment0 = a2BH
                                 
-                                local mHgBH = math.huge
-                                alBH.MaxForce = mHgBH
-                                alBH.MaxVelocity = mHgBH
+                                alBH.MaxForce = math.huge
+                                alBH.MaxVelocity = math.huge
                                 alBH.Responsiveness = 500
                                 alBH.Attachment0 = a2BH
                                 alBH.Attachment1 = aAttBH
@@ -4566,126 +4048,77 @@ local function SafeExecuteScript()
         end)
     end
 
-    local connHbCore = RunServiceAPI.Heartbeat:Connect(function()
-        local successHbCore, errorHbCore = pcall(function()
+    RunServiceAPI.Heartbeat:Connect(function()
+        pcall(function()
             local charHb = LocalPlayerInstance.Character
-            local isNotCharHb = false
-            if not charHb then
-                isNotCharHb = true
-            end
-            if isNotCharHb then 
+            if not charHb then 
                 return 
             end
             
             local armJointHb = nil
-            local uTorsoHb = charHb:FindFirstChild("UpperTorso")
             local isR15Hb = false
-            if uTorsoHb then
+            if charHb:FindFirstChild("UpperTorso") then
                 isR15Hb = true
             end
             
             if isR15Hb then
                 local rArmHb = charHb:FindFirstChild("RightUpperArm")
                 if rArmHb then 
-                    local rShoHb = rArmHb:FindFirstChild("RightShoulder")
-                    armJointHb = rShoHb 
+                    armJointHb = rArmHb:FindFirstChild("RightShoulder")
                 end
             end
-            local isNotR15Hb = false
             if not isR15Hb then
-                isNotR15Hb = true
-            end
-            if isNotR15Hb then
                 local torsoHb = charHb:FindFirstChild("Torso")
                 if torsoHb then 
-                    local rShoHb2 = torsoHb:FindFirstChild("Right Shoulder")
-                    armJointHb = rShoHb2 
+                    armJointHb = torsoHb:FindFirstChild("Right Shoulder")
                 end
             end
 
             if armJointHb then
                 local attC0Hb = armJointHb:GetAttribute("OriginalC0")
-                local isNotAttC0Hb = false
                 if not attC0Hb then
-                    isNotAttC0Hb = true
-                end
-                if isNotAttC0Hb then
-                    local currC0Hb = armJointHb.C0
-                    armJointHb:SetAttribute("OriginalC0", currC0Hb)
-                    attC0Hb = currC0Hb
+                    attC0Hb = armJointHb.C0
+                    armJointHb:SetAttribute("OriginalC0", attC0Hb)
                 end
 
-                local isArmAnimHb = GlobalState.ArmAnim
-                if isArmAnimHb then
-                    local tcMHb = tick() * GlobalState.ArmSpeed
-                    local mSinHb = math.sin(tcMHb)
-                    local moveHb = mSinHb * GlobalState.ArmIntensity
-                    
+                if GlobalState.ArmAnim then
+                    local moveHb = math.sin(tick() * GlobalState.ArmSpeed) * GlobalState.ArmIntensity
                     if isR15Hb then
-                        local cfNHb1 = CFrame.new(0, moveHb, -0.5)
-                        local mRadHb1 = math.rad(-90)
-                        local cfAHb1 = CFrame.Angles(mRadHb1, 0, 0)
-                        local cfCHb1 = attC0Hb * cfNHb1
-                        local cfFHb1 = cfCHb1 * cfAHb1
-                        armJointHb.C0 = cfFHb1
+                        local cfCHb1 = attC0Hb * CFrame.new(0, moveHb, -0.5)
+                        armJointHb.C0 = cfCHb1 * CFrame.Angles(math.rad(-90), 0, 0)
                     end
-                    local isNotR15Hb2 = false
                     if not isR15Hb then
-                        isNotR15Hb2 = true
-                    end
-                    if isNotR15Hb2 then
-                        local cfNHb2 = CFrame.new(-0.2, moveHb, -0.5)
-                        local mRadHb2 = math.rad(-90)
-                        local mRadHb3 = math.rad(20)
-                        local cfAHb2 = CFrame.Angles(mRadHb2, mRadHb3, 0)
-                        local cfCHb2 = attC0Hb * cfNHb2
-                        local cfFHb2 = cfCHb2 * cfAHb2
-                        armJointHb.C0 = cfFHb2
+                        local cfCHb2 = attC0Hb * CFrame.new(-0.2, moveHb, -0.5)
+                        armJointHb.C0 = cfCHb2 * CFrame.Angles(math.rad(-90), math.rad(20), 0)
                     end
                 end
-                local isNotArmAnimHb = false
-                if not isArmAnimHb then
-                    isNotArmAnimHb = true
-                end
-                if isNotArmAnimHb then
+                if not GlobalState.ArmAnim then
                     armJointHb.C0 = attC0Hb
                 end
             end
             
-            local isHdAdminHb = GlobalState.HDAdmin
-            if isHdAdminHb then
-                local isNotHdFiredSt = false
+            if GlobalState.HDAdmin then
                 if not hdFiredSt then
-                    isNotHdFiredSt = true
-                end
-                if isNotHdFiredSt then
-                    local rsRepHb = game:GetService("ReplicatedStorage")
-                    local hdCHb = rsRepHb:FindFirstChild("HDAdminClient")
+                    local hdCHb = ReplicatedStorageAPI:FindFirstChild("HDAdminClient")
                     if hdCHb then
-                        local succHD2, errHD2 = pcall(function()
+                        pcall(function()
                             local psPlHb = LocalPlayerInstance.PlayerScripts
                             local hdC2Hb = psPlHb:WaitForChild("HDAdminClient")
                             local mainWHb = hdC2Hb:WaitForChild("Main")
                             local mainModuleHb = require(mainWHb)
-                            local stRankHb = mainModuleHb.Settings
-                            stRankHb.Rank = 5
-                            stRankHb.RankName = "The King Xayz"
+                            mainModuleHb.Settings.Rank = 5
+                            mainModuleHb.Settings.RankName = "The King Xayz"
                             
-                            local remoteHb = rsRepHb:FindFirstChild("HDAdminRemote")
+                            local remoteHb = ReplicatedStorageAPI:FindFirstChild("HDAdminRemote")
                             if remoteHb then
-                                local tbAHb = {"Rank", LocalPlayerInstance, 5}
-                                remoteHb:FireServer(unpack(tbAHb)) 
+                                remoteHb:FireServer("Rank", LocalPlayerInstance, 5) 
                             end
                         end)
                     end
                     hdFiredSt = true
                 end
             end
-            local isNotHdAdminHb = false
-            if not isHdAdminHb then
-                isNotHdAdminHb = true
-            end
-            if isNotHdAdminHb then
+            if not GlobalState.HDAdmin then
                 hdFiredSt = false
             end
             
@@ -4698,38 +4131,18 @@ local function SafeExecuteScript()
                     end
                 end
                 
-                local dAnStHb = GlobalState.DinoAnim
-                if dAnStHb then
-                    local isNotDPlyHb = false
+                if GlobalState.DinoAnim then
                     if not isDPlyHb then
-                        isNotDPlyHb = true
-                    end
-                    if isNotDPlyHb then
-                        local hRigHb = humHb.RigType
-                        local isR15RigHb = false
-                        if hRigHb == Enum.HumanoidRigType.R15 then
-                            isR15RigHb = true
+                        if humHb.RigType == Enum.HumanoidRigType.R15 then
+                            dTrackIns = humHb:LoadAnimation(dinoAnimR15Ins)
                         end
-                        if isR15RigHb then
-                            local tLHb1 = humHb:LoadAnimation(dinoAnimR15Ins)
-                            dTrackIns = tLHb1
-                        end
-                        local isNotR15RigHb = false
-                        if hRigHb ~= Enum.HumanoidRigType.R15 then
-                            isNotR15RigHb = true
-                        end
-                        if isNotR15RigHb then
-                            local tLHb2 = humHb:LoadAnimation(dinoAnimR6Ins)
-                            dTrackIns = tLHb2
+                        if humHb.RigType ~= Enum.HumanoidRigType.R15 then
+                            dTrackIns = humHb:LoadAnimation(dinoAnimR6Ins)
                         end
                         dTrackIns:Play()
                     end
                 end
-                local isNotDanStHb = false
-                if not dAnStHb then
-                    isNotDanStHb = true
-                end
-                if isNotDanStHb then
+                if not GlobalState.DinoAnim then
                     if isDPlyHb then
                         dTrackIns:Stop()
                     end
@@ -4742,23 +4155,13 @@ local function SafeExecuteScript()
                     end
                 end
                 
-                local pAnStHb = GlobalState.PunchAnim
-                if pAnStHb then
-                    local isNotPPlyHb = false
+                if GlobalState.PunchAnim then
                     if not isPPlyHb then
-                        isNotPPlyHb = true
-                    end
-                    if isNotPPlyHb then
-                        local tLHb3 = humHb:LoadAnimation(punchAnimationIns)
-                        pTrackIns = tLHb3
+                        pTrackIns = humHb:LoadAnimation(punchAnimationIns)
                         pTrackIns:Play()
                     end
                 end
-                local isNotPAnStHb = false
-                if not pAnStHb then
-                    isNotPAnStHb = true
-                end
-                if isNotPAnStHb then
+                if not GlobalState.PunchAnim then
                     if isPPlyHb then
                         pTrackIns:Stop()
                     end
@@ -4766,146 +4169,85 @@ local function SafeExecuteScript()
             end
 
             local hrpHb = charHb:FindFirstChild("HumanoidRootPart")
-            local isNotHrpHb = false
-            if not hrpHb then
-                isNotHrpHb = true
-            end
-            if isNotHrpHb then 
+            if not hrpHb then 
                 return 
             end
 
-            local isFfHb = GlobalState.ForceField
-            if isFfHb then
-                local xffHb = charHb:FindFirstChild("XayzFF")
-                local isNotXffHb = false
-                if not xffHb then
-                    isNotXffHb = true
-                end
-                if isNotXffHb then
+            if GlobalState.ForceField then
+                if not charHb:FindFirstChild("XayzFF") then
                     local ffNHb = Instance.new("ForceField")
                     ffNHb.Name = "XayzFF"
                     ffNHb.Visible = true
                     ffNHb.Parent = charHb
                 end
             end
-            local isNotFfHb = false
-            if not isFfHb then
-                isNotFfHb = true
-            end
-            if isNotFfHb then
-                local xffHb2 = charHb:FindFirstChild("XayzFF")
-                if xffHb2 then 
-                    xffHb2:Destroy() 
+            if not GlobalState.ForceField then
+                if charHb:FindFirstChild("XayzFF") then 
+                    charHb:FindFirstChild("XayzFF"):Destroy() 
                 end
             end
 
             local ancPtHb, ancAttHb = GetAnchorSetupLogic()
 
-            local isBhHb = GlobalState.Blackhole
-            if isBhHb then
-                local wsDescHb = WorkspaceService:GetDescendants()
-                for _, vHb in pairs(wsDescHb) do
+            if GlobalState.Blackhole then
+                for _, vHb in pairs(WorkspaceService:GetDescendants()) do
                     ForcePartBHLogic(vHb, ancAttHb)
                 end
                 
-                local bhRad2Hb = math.rad(2)
-                bhAngleLogic = bhAngleLogic + bhRad2Hb
+                bhAngleLogic = bhAngleLogic + math.rad(2)
                 
-                local mCosHb = math.cos(bhAngleLogic)
-                local sDistHb = GlobalState.BlackholeDistance
-                local offXHb = mCosHb * sDistHb
+                local offXHb = math.cos(bhAngleLogic) * GlobalState.BlackholeDistance
+                local offZHb = math.sin(bhAngleLogic) * GlobalState.BlackholeDistance
                 
-                local mSinHb = math.sin(bhAngleLogic)
-                local offZHb = mSinHb * sDistHb
-                
-                local hrpCFHb = hrpHb.CFrame
-                local offCFHb = CFrame.new(offXHb, 0, offZHb)
-                local wCFHb = hrpCFHb * offCFHb
-                ancAttHb.WorldCFrame = wCFHb
-
+                ancAttHb.WorldCFrame = hrpHb.CFrame * CFrame.new(offXHb, 0, offZHb)
             end
             
-            local isRingHb = GlobalState.SuperRing
-            if isRingHb then
+            if GlobalState.SuperRing then
                 local tCenterHb = hrpHb.Position
                 local unPartsHb = {}
-                local wsDescHb2 = WorkspaceService:GetDescendants()
-                for _, vHb2 in pairs(wsDescHb2) do
-                    local isBPHb2 = vHb2:IsA("BasePart")
-                    if isBPHb2 then
-                        local isAncHb2 = vHb2.Anchored
-                        local isNotAncHb2 = false
-                        if not isAncHb2 then
-                            isNotAncHb2 = true
-                        end
-                        if isNotAncHb2 then
+                for _, vHb2 in pairs(WorkspaceService:GetDescendants()) do
+                    if vHb2:IsA("BasePart") then
+                        if not vHb2.Anchored then
                             local pntHb2 = vHb2.Parent
                             local fHumHb2 = nil
                             if pntHb2 then
                                 fHumHb2 = pntHb2:FindFirstChild("Humanoid")
                             end
-                            local isNotFHumHb2 = false
                             if not fHumHb2 then
-                                isNotFHumHb2 = true
-                            end
-                            if isNotFHumHb2 then
                                 local fHdHb2 = nil
                                 if pntHb2 then
                                     fHdHb2 = pntHb2:FindFirstChild("Head")
                                 end
-                                local isNotFhdHb2 = false
                                 if not fHdHb2 then
-                                    isNotFhdHb2 = true
-                                end
-                                if isNotFhdHb2 then
-                                    local vNmHb2 = vHb2.Name
-                                    local isNotHandleHb2 = false
-                                    if vNmHb2 ~= "Handle" then
-                                        isNotHandleHb2 = true
-                                    end
-                                    if isNotHandleHb2 then
+                                    if vHb2.Name ~= "Handle" then
                                         local isLpHb2 = false
-                                        local lpCharHb2 = LocalPlayerInstance.Character
-                                        if pntHb2 == lpCharHb2 then
+                                        if pntHb2 == LocalPlayerInstance.Character then
                                             isLpHb2 = true
                                         end
-                                        local isDHb2 = false
-                                        if lpCharHb2 then
-                                            isDHb2 = vHb2:IsDescendantOf(lpCharHb2)
+                                        if LocalPlayerInstance.Character then
+                                            if vHb2:IsDescendantOf(LocalPlayerInstance.Character) then
+                                                isLpHb2 = true
+                                            end
                                         end
-                                        if isDHb2 then
-                                            isLpHb2 = true
-                                        end
-                                        local isNotLpHb2 = false
                                         if not isLpHb2 then
-                                            isNotLpHb2 = true
-                                        end
-                                        if isNotLpHb2 then
                                             table.insert(unPartsHb, vHb2)
                                             
-                                            local fAlgnHb2 = vHb2:FindFirstChild("AlignPosition")
-                                            if fAlgnHb2 then
-                                                fAlgnHb2:Destroy()
+                                            if vHb2:FindFirstChild("AlignPosition") then
+                                                vHb2:FindFirstChild("AlignPosition"):Destroy()
                                             end
-                                            local fTqHb2 = vHb2:FindFirstChild("Torque")
-                                            if fTqHb2 then
-                                                fTqHb2:Destroy()
+                                            if vHb2:FindFirstChild("Torque") then
+                                                vHb2:FindFirstChild("Torque"):Destroy()
                                             end
                                             local atCHb2 = vHb2:FindFirstChildOfClass("Attachment")
                                             if atCHb2 then
-                                                local isAtAlgHb2 = atCHb2:FindFirstChildOfClass("AlignPosition")
-                                                local isNotAtAlgHb2 = false
-                                                if not isAtAlgHb2 then
-                                                    isNotAtAlgHb2 = true
-                                                end
-                                                if isNotAtAlgHb2 then
+                                                if not atCHb2:FindFirstChildOfClass("AlignPosition") then
                                                     atCHb2:Destroy()
                                                 end
                                             end
                                             
-                                            local ppHb2 = PhysicalProperties.new(0,0,0,0,0)
-                                            vHb2.CustomPhysicalProperties = ppHb2
+                                            vHb2.CustomPhysicalProperties = PhysicalProperties.new(0,0,0,0,0)
                                             vHb2.CanCollide = false
+                                            vHb2.Massless = true
                                         end
                                     end
                                 end
@@ -4915,90 +4257,55 @@ local function SafeExecuteScript()
                 end
                 
                 local tPartsHb = #unPartsHb
-                for iHb, ptHb in pairs(unPartsHb) do
+                for _, ptHb in pairs(unPartsHb) do
                     local ptPosHb = ptHb.Position
                     local vXZHb = Vector3.new(ptPosHb.X, tCenterHb.Y, ptPosHb.Z)
-                    local tSubHb = vXZHb - tCenterHb
-                    local distHb = tSubHb.Magnitude
+                    local distHb = (vXZHb - tCenterHb).Magnitude
                     
-                    local zSubHb = ptPosHb.Z - tCenterHb.Z
-                    local xSubHb = ptPosHb.X - tCenterHb.X
-                    local atanHb = math.atan2(zSubHb, xSubHb)
+                    local atanHb = math.atan2(ptPosHb.Z - tCenterHb.Z, ptPosHb.X - tCenterHb.X)
+                    local newAngHb = atanHb + math.rad(GlobalState.RingSpeed)
                     
-                    local rSpdHb = GlobalState.RingSpeed
-                    local mRadHb4 = math.rad(rSpdHb)
-                    local newAngHb = atanHb + mRadHb4
+                    local minDHb = math.min(GlobalState.RingDistance, distHb)
+                    local tXHb = tCenterHb.X + (math.cos(newAngHb) * minDHb)
                     
-                    local rDisHb = GlobalState.RingDistance
-                    local minDHb = math.min(rDisHb, distHb)
-                    local mCosHb2 = math.cos(newAngHb)
-                    local tXHb = tCenterHb.X + (mCosHb2 * minDHb)
-                    
-                    local ySubHb = ptPosHb.Y - tCenterHb.Y
-                    local rHeiHb = GlobalState.RingHeight
-                    local hDivHb = ySubHb / rHeiHb
-                    local hSinHb = math.sin(hDivHb)
-                    local hAbsHb = math.abs(hSinHb)
-                    local hMultHb = rHeiHb * hAbsHb
+                    local hDivHb = (ptPosHb.Y - tCenterHb.Y) / GlobalState.RingHeight
+                    local hMultHb = GlobalState.RingHeight * math.abs(math.sin(hDivHb))
                     local tYHb = tCenterHb.Y + hMultHb
                     
-                    local mSinHb2 = math.sin(newAngHb)
-                    local tZHb = tCenterHb.Z + (mSinHb2 * minDHb)
+                    local tZHb = tCenterHb.Z + (math.sin(newAngHb) * minDHb)
                     
                     local tarPosHb = Vector3.new(tXHb, tYHb, tZHb)
-                    local dirSubHb = tarPosHb - ptPosHb
-                    local dirUnHb = dirSubHb.Unit
-                    
-                    local rAttHb = GlobalState.RingAttraction
-                    local fVelHb = dirUnHb * rAttHb
-                    ptHb.Velocity = fVelHb
+                    ptHb.Velocity = (tarPosHb - ptPosHb).Unit * GlobalState.RingAttraction
                 end
             end
             
-            local notBhHb = false
-            if not GlobalState.Blackhole then
-                notBhHb = true
-            end
-            local notSrHb = false
-            if not GlobalState.SuperRing then
-                notSrHb = true
-            end
             local offAllHb = false
-            if notBhHb then
-                if notSrHb then
+            if not GlobalState.Blackhole then
+                if not GlobalState.SuperRing then
                     offAllHb = true
                 end
             end
             
             if offAllHb then
-                local wsDescHb3 = WorkspaceService:GetDescendants()
-                for _, vHb3 in pairs(wsDescHb3) do
-                    local isBPartHb3 = vHb3:IsA("Part")
-                    if isBPartHb3 then
-                        local fAlgnHb3 = vHb3:FindFirstChild("AlignPosition")
-                        if fAlgnHb3 then
-                            fAlgnHb3:Destroy()
-                            local fTqHb3 = vHb3:FindFirstChild("Torque")
-                            if fTqHb3 then 
-                                fTqHb3:Destroy() 
+                for _, vHb3 in pairs(WorkspaceService:GetDescendants()) do
+                    if vHb3:IsA("Part") then
+                        if vHb3:FindFirstChild("AlignPosition") then
+                            vHb3:FindFirstChild("AlignPosition"):Destroy()
+                            if vHb3:FindFirstChild("Torque") then 
+                                vHb3:FindFirstChild("Torque"):Destroy() 
                             end
                         end
                     end
                 end
                 local fAncHb = WorkspaceService:FindFirstChild("XayzAnchor")
                 if fAncHb then
-                    local zPosHb = CFrame.new(0, -1000, 0)
-                    fAncHb.CFrame = zPosHb
+                    fAncHb.CFrame = CFrame.new(0, -1000, 0)
                 end
             end
         end)
     end)
 end
 
-local function InitSafe()
-    local successInit, errorInit = pcall(function()
-        SafeExecuteScript()
-    end)
-end
-
-InitSafe()
+pcall(function()
+    SafeExecuteScript()
+end)
